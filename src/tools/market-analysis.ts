@@ -3,6 +3,68 @@ import { z } from "zod";
 import { newsSearchTool } from "./news";
 import { stockPriceTool } from "./stock";
 
+// 型定義
+interface PriceResult {
+	symbol: string;
+	name: string;
+	sector: string;
+	current: number;
+	change: number;
+	changePercent: number;
+	volume: number;
+	marketCap: number;
+	error?: string;
+	message?: string;
+}
+
+interface NewsResult {
+	articles: NewsArticle[];
+	totalFound: number;
+	query: string;
+}
+
+interface NewsArticle {
+	title: string;
+	description: string;
+	publishedAt: string;
+	source: string;
+}
+
+interface AnalysisData {
+	symbol: string;
+	companyName: string;
+	sector: string;
+	analysisDate: string;
+	priceAnalysis: {
+		currentPrice: number;
+		priceChange: number;
+		priceChangePercent: number;
+		trend: string;
+		volatility: string;
+	};
+	newsAnalysis: {
+		totalNews: number;
+		recentNewsCount: number;
+		sentiment: string;
+	};
+	overallAssessment: {
+		recommendation: string;
+		riskLevel: string;
+		confidenceScore: number;
+	};
+	detailedMetrics?: {
+		marketCap: number;
+		volume: number;
+		volumeAnalysis: string;
+		newsTopics: string[];
+	};
+	sectorComparison?: {
+		sector: string;
+		peers: string[];
+		analysis: string;
+	};
+}
+
 /**
  * 市場統合分析ツール
  * 銘柄の株価と関連ニュースを統合して分析
@@ -32,10 +94,10 @@ export const marketAnalysisTool = createTool({
 
 			// 1. 株価データを取得
 			console.log("📊 株価データを取得中...");
-			const priceResult: any = await stockPriceTool.execute({
+			const priceResult = await stockPriceTool.execute({
 				symbol,
 				includeNews: false,
-			});
+			}) as PriceResult;
 
 			if (priceResult.error) {
 				return {
@@ -47,14 +109,14 @@ export const marketAnalysisTool = createTool({
 
 			// 2. 関連ニュースを検索
 			console.log("📰 関連ニュースを検索中...");
-			const newsResult: any = await newsSearchTool.execute({
+			const newsResult = await newsSearchTool.execute({
 				query: symbol,
 				category: "business",
 				count: analysisType === "detailed" ? 10 : 5,
-			});
+			}) as NewsResult;
 
 			// 3. 分析ロジック
-			const analysis: any = {
+			const analysis: AnalysisData = {
 				symbol: priceResult.symbol,
 				companyName: priceResult.name,
 				sector: priceResult.sector,
@@ -82,7 +144,7 @@ export const marketAnalysisTool = createTool({
 				// ニュース分析
 				newsAnalysis: {
 					totalNews: newsResult.articles.length,
-					recentNewsCount: newsResult.articles.filter((article: any) => {
+					recentNewsCount: newsResult.articles.filter((article) => {
 						const publishedHours =
 							(new Date().getTime() - new Date(article.publishedAt).getTime()) /
 							(1000 * 60 * 60);
@@ -178,7 +240,10 @@ function assessRiskLevel(absChangePercent: number, newsCount: number) {
 	return "低";
 }
 
-function calculateConfidenceScore(priceData: any, newsData: any) {
+function calculateConfidenceScore(
+	priceData: PriceResult,
+	newsData: NewsResult,
+) {
 	let score = 50; // ベーススコア
 
 	// ニュース数による信頼度調整
@@ -191,7 +256,7 @@ function calculateConfidenceScore(priceData: any, newsData: any) {
 	return Math.max(0, Math.min(100, score));
 }
 
-function extractNewsTopics(articles: any[]) {
+function extractNewsTopics(articles: NewsArticle[]) {
 	const topics = ["決算", "新製品", "提携", "買収", "規制", "技術革新"];
 	return topics.filter((topic) =>
 		articles.some(
@@ -220,7 +285,7 @@ async function getSectorComparison(sector: string, currentSymbol: string) {
 	};
 }
 
-function generateSummaryMessage(analysis: any) {
+function generateSummaryMessage(analysis: AnalysisData) {
 	const {
 		symbol,
 		companyName,

@@ -1,15 +1,6 @@
 import { createTool } from "@voltagent/core";
 import { z } from "zod";
 
-// ニュース記事の型定義
-const NewsArticle = z.object({
-	title: z.string(),
-	description: z.string(),
-	url: z.string(),
-	publishedAt: z.string(),
-	source: z.string(),
-});
-
 /**
  * ニュース検索ツール
  * 指定されたキーワードで最新ニュースを検索

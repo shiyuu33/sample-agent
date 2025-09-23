@@ -2,16 +2,19 @@ import { createTool } from "@voltagent/core";
 import { z } from "zod";
 
 // 株価データの型定義
-const StockData = z.object({
-	symbol: z.string(),
-	name: z.string(),
-	current: z.number(),
-	change: z.number(),
-	changePercent: z.number(),
-	volume: z.number(),
-	marketCap: z.number(),
-	lastUpdated: z.string(),
-});
+interface StockData {
+	symbol: string;
+	name: string;
+	sector: string;
+	current: number;
+	change: number;
+	changePercent: number;
+	volume: number;
+	marketCap: number;
+	lastUpdated: string;
+	message: string;
+	relatedNews?: string[];
+}
 
 /**
  * 株価取得ツール
@@ -102,7 +105,7 @@ export const stockPriceTool = createTool({
 				lastUpdated: new Date().toISOString(),
 			};
 
-			const result: any = {
+			const result: StockData = {
 				...stockData,
 				message: `${stockData.name} (${symbolUpper}): $${stockData.current.toFixed(2)} ${stockData.change >= 0 ? "+" : ""}${stockData.change.toFixed(2)} (${stockData.changePercent >= 0 ? "+" : ""}${stockData.changePercent.toFixed(2)}%)`,
 			};
