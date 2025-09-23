@@ -1,102 +1,212 @@
 import { createTool } from "@voltagent/core";
 import { z } from "zod";
+import axios from "axios";
+
+// ニュース記事の型定義
+interface NewsArticle {
+	title: string;
+	description: string;
+	url: string;
+	publishedAt: string;
+	source: {
+		name: string;
+	};
+	urlToImage?: string;
+	content?: string;
+}
+
+interface NewsApiResponse {
+	status: string;
+	totalResults: number;
+	articles: NewsArticle[];
+}
 
 /**
- * ニュース検索ツール
- * 指定されたキーワードで最新ニュースを検索
- * デモ用にモックデータを使用（実際の実装ではNews API等を使用）
+ * 暗号通貨ニュース検索ツール
+ * News APIを使用して指定されたキーワードで最新ニュースを検索
+ * 暗号通貨関連のニュースに特化
  */
-export const newsSearchTool = createTool({
-	name: "searchNews",
-	description: "指定されたキーワードで最新ニュースを検索する",
+export const cryptoNewsSearchTool = createTool({
+	name: "searchCryptoNews",
+	description: "指定された暗号通貨キーワードで最新ニュースを検索する（News API使用）",
 	parameters: z.object({
-		query: z.string().describe("検索キーワード（例：Apple, Tesla, 半導体）"),
-		category: z
+		query: z.string().describe("検索キーワード（例：bitcoin, ethereum, cryptocurrency）"),
+		language: z
 			.string()
 			.optional()
-			.describe("カテゴリ（business, technology, finance, market）"),
-		count: z
+			.default("en")
+			.describe("言語（デフォルト: en, 日本語: ja）"),
+		sortBy: z
+			.enum(["relevancy", "popularity", "publishedAt"])
+			.optional()
+			.default("publishedAt")
+			.describe("ソート順（関連性、人気、公開日）"),
+		pageSize: z
 			.number()
 			.optional()
-			.default(5)
-			.describe("取得する記事数（デフォルト: 5）"),
+			.default(10)
+			.describe("取得する記事数（最大100、デフォルト: 10）"),
 	}),
-	execute: async ({ query, category, count = 5 }) => {
+	execute: async ({ query, language = "en", sortBy = "publishedAt", pageSize = 10 }) => {
 		try {
-			// デモ用のモックニュースデータ
-			const mockNewsTemplates = [
-				{
-					title: `${query}の第4四半期業績が予想を上回る`,
-					description: `${query}の最新四半期決算で、売上高と利益が市場予想を大幅に上回った。業界全体への影響も注目される。`,
-					source: "TechNews",
-				},
-				{
-					title: `${query}関連株に注目、新技術発表で株価上昇`,
-					description: `${query}が発表した新技術により、関連企業の株価が軒並み上昇。投資家の関心が高まっている。`,
-					source: "BusinessDaily",
-				},
-				{
-					title: `${query}の市場シェア拡大、競合他社への影響は？`,
-					description: `${query}の市場シェア拡大により、業界構造に変化の兆し。競合他社の対応策に注目が集まる。`,
-					source: "MarketWatch",
-				},
-				{
-					title: `専門家が語る${query}の将来性と投資戦略`,
-					description: `業界専門家による${query}の詳細分析。今後の成長可能性と投資における注意点を解説。`,
-					source: "InvestmentJournal",
-				},
-				{
-					title: `${query}の新製品発表が業界に与える影響`,
-					description: `${query}が発表した革新的な新製品により、業界の競争環境が大きく変わる可能性が浮上。`,
-					source: "InnovationToday",
-				},
-			];
+			console.log(`📰 ${query}に関する暗号通貨ニュースを検索中...`);
 
-			// カテゴリに応じてニュースをフィルタリング（簡易実装）
-			let filteredNews = mockNewsTemplates;
-			if (category) {
-				// カテゴリに応じた追加情報を付与
-				filteredNews = mockNewsTemplates.map((news) => ({
-					...news,
-					title: `[${category.toUpperCase()}] ${news.title}`,
-				}));
+			// News API キー（環境変数から取得）
+			const apiKey = process.env.NEWS_API_KEY;
+
+			if (!apiKey) {
+				const errorMessage = "NEWS_API_KEYが設定されていません。環境変数を設定してください。";
+				console.error(`❌ ${errorMessage}`);
+				throw new Error(errorMessage);
 			}
 
-			// 現在時刻から過去24時間以内のランダムな時刻を生成
-			const generateRecentDate = () => {
-				const now = new Date();
-				const hoursAgo = Math.floor(Math.random() * 24);
-				const minutesAgo = Math.floor(Math.random() * 60);
-				return new Date(
-					now.getTime() - (hoursAgo * 60 + minutesAgo) * 60 * 1000,
-				).toISOString();
-			};
+			// News API エンドポイント
+			const baseUrl = "https://newsapi.org/v2";
+			const endpoint = "/everything";
 
-			// 完全なニュース記事を生成
-			const articles = filteredNews.slice(0, count).map((template, index) => ({
-				title: template.title,
-				description: template.description,
-				url: `https://example.com/news/${query.toLowerCase()}-${index + 1}`,
-				publishedAt: generateRecentDate(),
-				source: template.source,
-			}));
+			// 暗号通貨関連のキーワードを含む検索クエリを構築
+			const cryptoQuery = `${query} AND (crypto OR cryptocurrency OR bitcoin OR blockchain OR digital OR currency)`;
+
+			// APIリクエスト
+			const response = await axios.get(`${baseUrl}${endpoint}`, {
+				params: {
+					q: cryptoQuery,
+					language: language as string,
+					sortBy: sortBy as string,
+					pageSize: Math.min(pageSize as number, 100),
+					from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 過去7日間
+				},
+				headers: {
+					'X-API-Key': apiKey,
+					'Accept': 'application/json',
+				},
+				timeout: 15000, // 15秒タイムアウト
+			});
+
+			const data: NewsApiResponse = response.data;
+
+			if (data.status !== 'ok') {
+				throw new Error(`News API エラー: ${data.status}`);
+			}
+
+			// 記事を処理し、暗号通貨関連度でフィルタリング
+			const processedArticles = data.articles
+				.filter(article => article.title && article.description)
+				.map(article => ({
+					title: article.title,
+					description: article.description,
+					url: article.url,
+					publishedAt: article.publishedAt,
+					source: article.source.name,
+					urlToImage: article.urlToImage,
+					relevanceScore: calculateCryptoRelevance(article.title + " " + article.description, query as string)
+				}))
+				.sort((a, b) => b.relevanceScore - a.relevanceScore) // 関連度順でソート
+				.slice(0, pageSize as number);
+
+			// センチメント分析
+			const sentiment = analyzeCryptoNewsSentiment(processedArticles);
 
 			return {
-				query,
-				category: category || "general",
-				articles,
-				totalFound: articles.length,
+				query: query as string,
+				language: language as string,
+				articles: processedArticles.map(({ relevanceScore, ...article }) => article),
+				totalFound: data.totalResults,
+				actualReturned: processedArticles.length,
+				sentiment: sentiment,
 				searchTime: new Date().toISOString(),
-				message: `「${query}」に関するニュースを${articles.length}件見つけました。${category ? `カテゴリ: ${category}` : ""}`,
+				message: generateNewsSearchSummary(query as string, processedArticles.length, sentiment),
 			};
+
 		} catch (error) {
-			return {
-				query,
-				error: "ニュース検索中にエラーが発生しました",
-				articles: [],
-				totalFound: 0,
-				message: `「${query}」のニュース検索に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
-			};
+			console.error(`❌ ${query}のニュース検索中にエラー:`, error);
+
+			if (axios.isAxiosError(error)) {
+				if (error.response?.status === 429) {
+					const errorMessage = "News APIのリクエスト制限に達しました。しばらく待ってから再試行してください。";
+					console.error(`❌ APIレート制限: ${errorMessage}`);
+					throw new Error(errorMessage);
+				}
+				if (error.response?.status === 401) {
+					const errorMessage = "News APIキーが無効です。正しいAPIキーを設定してください。";
+					console.error(`❌ API認証エラー: ${errorMessage}`);
+					throw new Error(errorMessage);
+				}
+				if (error.response?.status === 403) {
+					const errorMessage = "News APIへのアクセスが拒否されました。API権限を確認してください。";
+					console.error(`❌ APIアクセス拒否: ${errorMessage}`);
+					throw new Error(errorMessage);
+				}
+			}
+
+			// その他のエラーもすべて再スローして処理を停止
+			const errorMessage = `${query as string}のニュース検索に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`;
+			console.error(`❌ ニュース検索エラー: ${errorMessage}`);
+			throw new Error(errorMessage);
 		}
 	},
 });
+
+// ヘルパー関数
+
+function calculateCryptoRelevance(text: string, query: string): number {
+	const lowerText = text.toLowerCase();
+	const lowerQuery = query.toLowerCase();
+
+	let score = 0;
+
+	// メインクエリの出現回数
+	const queryMatches = (lowerText.match(new RegExp(lowerQuery, 'g')) || []).length;
+	score += queryMatches * 3;
+
+	// 暗号通貨関連キーワードの重み付け
+	const cryptoKeywords = [
+		'bitcoin', 'ethereum', 'cryptocurrency', 'crypto', 'blockchain',
+		'defi', 'nft', 'trading', 'mining', 'wallet', 'exchange'
+	];
+
+	cryptoKeywords.forEach(keyword => {
+		if (lowerText.includes(keyword)) {
+			score += 1;
+		}
+	});
+
+	return score;
+}
+
+function analyzeCryptoNewsSentiment(articles: any[]): string {
+	if (articles.length === 0) return "中立";
+
+	let positiveCount = 0;
+	let negativeCount = 0;
+
+	const positiveWords = ['上昇', '成長', '採用', '革新', '改善', 'bull', 'rise', 'growth', 'adoption', 'innovation'];
+	const negativeWords = ['下落', '暴落', '規制', '禁止', '懸念', 'bear', 'crash', 'regulation', 'ban', 'concern'];
+
+	articles.forEach(article => {
+		const text = (article.title + " " + article.description).toLowerCase();
+
+		positiveWords.forEach(word => {
+			if (text.includes(word)) positiveCount++;
+		});
+
+		negativeWords.forEach(word => {
+			if (text.includes(word)) negativeCount++;
+		});
+	});
+
+	if (positiveCount > negativeCount * 1.5) return "ポジティブ";
+	if (negativeCount > positiveCount * 1.5) return "ネガティブ";
+	return "中立";
+}
+
+function generateNewsSearchSummary(query: string, articleCount: number, sentiment: string): string {
+	return `📰 「${query}」関連の暗号通貨ニュースを${articleCount}件取得しました。
+	
+📊 市場センチメント: ${sentiment}
+🕐 検索時刻: ${new Date().toLocaleString('ja-JP')}
+
+${sentiment === "ポジティブ" ? "📈 市場に対する楽観的な見方が多く見られます。" :
+			sentiment === "ネガティブ" ? "📉 市場に対する慎重な見方が増えています。" :
+				"⚖️ ポジティブとネガティブなニュースが混在しています。"}`;
+}

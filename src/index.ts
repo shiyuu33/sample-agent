@@ -4,8 +4,8 @@ import { Agent, Memory, VoltAgent, VoltOpsClient } from "@voltagent/core";
 import { LibSQLMemoryAdapter } from "@voltagent/libsql";
 import { createPinoLogger } from "@voltagent/logger";
 import { honoServer } from "@voltagent/server-hono";
-import { marketAnalysisTool, newsSearchTool, stockPriceTool } from "./tools";
-import { investmentDecisionWorkflow } from "./workflows";
+import { cryptoAnalysisTool, cryptoDataTool, cryptoNewsSearchTool } from "./tools";
+import { cryptoAnalysisWorkflow } from "./workflows";
 
 // Create a logger instance
 const logger = createPinoLogger({
@@ -21,44 +21,44 @@ const memory = new Memory({
 	}),
 });
 
-// メインエージェント
-const agent = new Agent({
-	name: "sample-agent",
+// メイン暗号通貨分析エージェント
+const cryptoAgent = new Agent({
+	name: "crypto-analysis-agent",
 	instructions:
-		"ニュース検索、株価取得、市場分析を行う便利なアシスタントです。金融リサーチ、投資インサイト、ビジネス情報分析を専門としています。",
+		"暗号通貨の市場データ分析、ニュース収集、包括的レポート生成を行う専門AIエージェントです。CoinGecko APIとNews APIを使用してリアルタイムな暗号通貨分析を提供し、投資判断の参考情報を日本語で提供します。",
 	model: google("gemini-2.0-flash-exp"),
-	tools: [newsSearchTool, stockPriceTool, marketAnalysisTool],
+	tools: [cryptoDataTool, cryptoNewsSearchTool, cryptoAnalysisTool],
 	memory,
 });
 
-// 市場分析専門サブエージェント
-const marketAnalyst = new Agent({
-	name: "market-analyst",
+// 暗号通貨市場データ専門サブエージェント
+const cryptoDataAnalyst = new Agent({
+	name: "crypto-data-analyst",
 	instructions:
-		"私は市場分析に特化したエージェントです。株価分析、ニュースセンチメント分析、投資インサイトの提供に焦点を当てています。包括的なデータ分析を用いて正確な市場評価を提供します。",
+		"私は暗号通貨市場データ分析に特化したエージェントです。CoinGecko APIを使用して価格、時価総額、取引量などの市場データを収集・分析し、技術的指標やトレンド分析を提供します。",
 	model: google("gemini-2.0-flash-exp"),
-	tools: [stockPriceTool, newsSearchTool, marketAnalysisTool],
+	tools: [cryptoDataTool],
 	memory,
 });
 
-// ニュース検索専門サブエージェント
-const newsResearcher = new Agent({
-	name: "news-researcher",
+// 暗号通貨ニュース専門サブエージェント
+const cryptoNewsAnalyst = new Agent({
+	name: "crypto-news-analyst",
 	instructions:
-		"私はニュース調査に特化したエージェントです。関連するニュース記事の検索、情報トレンドの分析、企業や市場イベントに関する要約されたインサイトの提供を得意としています。",
+		"私は暗号通貨関連ニュースの収集と分析に特化したエージェントです。News APIを使用して最新の暗号通貨ニュースを収集し、センチメント分析、トレンド分析、市場への影響評価を行います。",
 	model: google("gemini-2.0-flash-exp"),
-	tools: [newsSearchTool],
+	tools: [cryptoNewsSearchTool],
 	memory,
 });
 
 new VoltAgent({
 	agents: {
-		agent,
-		marketAnalyst,
-		newsResearcher,
+		cryptoAgent,
+		cryptoDataAnalyst,
+		cryptoNewsAnalyst,
 	},
 	workflows: {
-		investmentDecisionWorkflow,
+		cryptoAnalysisWorkflow,
 	},
 	server: honoServer(),
 	logger,

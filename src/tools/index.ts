@@ -1,4 +1,4 @@
 // Export all tools from this directory
-export { newsSearchTool } from "./news";
-export { stockPriceTool } from "./stock";
-export { marketAnalysisTool } from "./market-analysis";
+export { cryptoNewsSearchTool } from "./news";
+export { cryptoDataTool } from "./crypto";
+export { cryptoAnalysisTool } from "./crypto-analysis";
