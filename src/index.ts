@@ -25,7 +25,7 @@ const memory = new Memory({
 const agent = new Agent({
 	name: "sample-agent",
 	instructions:
-		"A helpful assistant that can check weather, search news, get stock prices, and perform market analysis. I can help with financial research, investment insights, and business information.",
+		"A helpful assistant that can search news, get stock prices, and perform market analysis. I specialize in financial research, investment insights, and business information analysis.",
 	model: google("gemini-2.0-flash-exp"),
 	tools: [newsSearchTool, stockPriceTool, marketAnalysisTool],
 	memory,

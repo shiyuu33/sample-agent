@@ -69,6 +69,9 @@ interface AnalysisData {
  * 市場統合分析ツール
  * 銘柄の株価と関連ニュースを統合して分析
  * サブエージェントでの使用を想定した高度な分析機能
+ * 
+ * ⚠️ 【重要：免責事項】
+ * - このツールはデモ・教育用途のみです。実際の投資助言や金融アドバイスではありません。分析結果は学習・参考目的であり、投資判断に使用しないでください
  */
 export const marketAnalysisTool = createTool({
 	name: "analyzeMarket",
