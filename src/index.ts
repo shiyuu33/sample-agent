@@ -5,7 +5,7 @@ import { LibSQLMemoryAdapter } from "@voltagent/libsql";
 import { createPinoLogger } from "@voltagent/logger";
 import { honoServer } from "@voltagent/server-hono";
 import { marketAnalysisTool, newsSearchTool, stockPriceTool } from "./tools";
-import { expenseApprovalWorkflow } from "./workflows";
+import { investmentDecisionWorkflow } from "./workflows";
 
 // Create a logger instance
 const logger = createPinoLogger({
@@ -25,7 +25,7 @@ const memory = new Memory({
 const agent = new Agent({
 	name: "sample-agent",
 	instructions:
-		"A helpful assistant that can search news, get stock prices, and perform market analysis. I specialize in financial research, investment insights, and business information analysis.",
+		"ニュース検索、株価取得、市場分析を行う便利なアシスタントです。金融リサーチ、投資インサイト、ビジネス情報分析を専門としています。",
 	model: google("gemini-2.0-flash-exp"),
 	tools: [newsSearchTool, stockPriceTool, marketAnalysisTool],
 	memory,
@@ -35,7 +35,7 @@ const agent = new Agent({
 const marketAnalyst = new Agent({
 	name: "market-analyst",
 	instructions:
-		"I am a specialized market analyst agent. I focus on analyzing stock prices, news sentiment, and providing investment insights. I use comprehensive data analysis to provide accurate market assessments.",
+		"私は市場分析に特化したエージェントです。株価分析、ニュースセンチメント分析、投資インサイトの提供に焦点を当てています。包括的なデータ分析を用いて正確な市場評価を提供します。",
 	model: google("gemini-2.0-flash-exp"),
 	tools: [stockPriceTool, newsSearchTool, marketAnalysisTool],
 	memory,
@@ -45,7 +45,7 @@ const marketAnalyst = new Agent({
 const newsResearcher = new Agent({
 	name: "news-researcher",
 	instructions:
-		"I am a specialized news research agent. I excel at finding relevant news articles, analyzing information trends, and providing summarized insights about companies and market events.",
+		"私はニュース調査に特化したエージェントです。関連するニュース記事の検索、情報トレンドの分析、企業や市場イベントに関する要約されたインサイトの提供を得意としています。",
 	model: google("gemini-2.0-flash-exp"),
 	tools: [newsSearchTool],
 	memory,
@@ -58,7 +58,7 @@ new VoltAgent({
 		newsResearcher,
 	},
 	workflows: {
-		expenseApprovalWorkflow,
+		investmentDecisionWorkflow,
 	},
 	server: honoServer(),
 	logger,
