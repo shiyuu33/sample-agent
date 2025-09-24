@@ -11,6 +11,12 @@ import type {
  * 暗号通貨市場データ取得ツール
  * CoinGecko APIを使用して指定された暗号通貨の最新市場データを取得
  * 価格（円建て・ドル建て）、24時間取引量、市場キャップ（時価総額）を含む
+ * 
+ * @tool getCryptoData
+ * @description 指定された暗号通貨の現在の市場データを取得する（CoinGecko API使用）
+ * @param {string} cryptoId - 暗号通貨ID（例：bitcoin, ethereum, cardano, solana, dogecoin）
+ * @param {string[]} [vs_currencies=["usd", "jpy"]] - 表示通貨（デフォルト: USD, JPY）
+ * @returns {Promise<CryptoDataResponse>} 市場データ、分析結果、日本語サマリーを含むレスポンス
  */
 export const cryptoDataTool = createTool({
 	name: "getCryptoData",
@@ -95,7 +101,13 @@ export const cryptoDataTool = createTool({
 
 // ヘルパー関数
 
-// CoinGecko APIレスポンスをCryptoDataに変換する関数
+/**
+ * CoinGecko APIレスポンスをCryptoDataに変換する関数
+ * 
+ * @param {CoinGeckoApiResponse} response - CoinGecko APIからの生レスポンス
+ * @param {string[]} currencies - 表示通貨の配列
+ * @returns {CryptoData} 標準化された暗号通貨データ
+ */
 function makeCoinGeckoResponse(
 	response: CoinGeckoApiResponse,
 	currencies: string[],
@@ -121,6 +133,12 @@ function makeCoinGeckoResponse(
 	};
 }
 
+/**
+ * 24時間取引量を分析してレベルを判定する関数
+ * 
+ * @param {number} volumeUsd - USD建て24時間取引量
+ * @returns {string} 取引量レベルの日本語表記
+ */
 function analyzeVolume(volumeUsd: number): string {
 	if (volumeUsd > 10000000000) return "非常に高い"; // 100億USD以上
 	if (volumeUsd > 1000000000) return "高い"; // 10億USD以上
@@ -129,6 +147,12 @@ function analyzeVolume(volumeUsd: number): string {
 	return "非常に低い";
 }
 
+/**
+ * 価格変動率からボラティリティレベルを判定する関数
+ * 
+ * @param {number} priceChangePercent - 24時間価格変動率（%）
+ * @returns {string} ボラティリティレベルの日本語表記
+ */
 function analyzeVolatility(priceChangePercent: number): string {
 	const absChange = Math.abs(priceChangePercent);
 	if (absChange > 20) return "非常に高い";
@@ -138,6 +162,12 @@ function analyzeVolatility(priceChangePercent: number): string {
 	return "非常に低い";
 }
 
+/**
+ * 時価総額から市場規模カテゴリを判定する関数
+ * 
+ * @param {number} marketCapUsd - USD建て時価総額
+ * @returns {string} 市場規模カテゴリの日本語表記
+ */
 function analyzeMarketCap(marketCapUsd: number): string {
 	if (marketCapUsd > 100000000000) return "大型（100B+ USD）"; // 1000億USD以上
 	if (marketCapUsd > 10000000000) return "中型（10B-100B USD）"; // 100億-1000億USD
@@ -146,6 +176,15 @@ function analyzeMarketCap(marketCapUsd: number): string {
 	return "ナノ（<100M USD）";
 }
 
+/**
+ * 暗号通貨市場データの包括的サマリーを生成する関数
+ * 
+ * @param {CryptoData} data - 暗号通貨の市場データ
+ * @param {string} volumeAnalysis - 取引量分析結果
+ * @param {string} volatilityAnalysis - ボラティリティ分析結果
+ * @param {string} marketCapAnalysis - 時価総額分析結果
+ * @returns {string} 日本語フォーマットされたサマリー文字列
+ */
 function generateCryptoSummary(
 	data: CryptoData,
 	volumeAnalysis: string,

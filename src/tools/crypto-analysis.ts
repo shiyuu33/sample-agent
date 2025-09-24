@@ -210,6 +210,12 @@ export const cryptoAnalysisTool = createTool({
 
 // ヘルパー関数
 
+/**
+ * 価格変動率からボラティリティレベルを判定する関数
+ * 
+ * @param {number} priceChangePercent - 24時間価格変動率（%）
+ * @returns {string} ボラティリティレベルの日本語表記
+ */
 function analyzeVolatility(priceChangePercent: number): string {
 	const absChange = Math.abs(priceChangePercent);
 	if (absChange > 15) return "非常に高い";
@@ -219,6 +225,12 @@ function analyzeVolatility(priceChangePercent: number): string {
 	return "非常に低い";
 }
 
+/**
+ * ニュース記事から主要トピックを抽出する関数
+ * 
+ * @param {NewsArticle[]} articles - 分析対象のニュース記事配列
+ * @returns {string[]} 検出された主要トピックの配列
+ */
 function extractKeyTopics(articles: NewsArticle[]): string[] {
 	const topics = [
 		"価格変動",
@@ -258,12 +270,25 @@ function extractKeyTopics(articles: NewsArticle[]): string[] {
 	});
 }
 
+/**
+ * 指定時間内のニュース記事数を計算する関数
+ * 
+ * @param {NewsArticle[]} articles - ニュース記事配列
+ * @param {number} hours - 対象時間（時間単位）
+ * @returns {number} 指定時間内の記事数
+ */
 function countRecentNews(articles: NewsArticle[], hours: number): number {
 	const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
 	return articles.filter((article) => new Date(article.publishedAt) > cutoff)
 		.length;
 }
 
+/**
+ * センチメント文字列から数値スコアを計算する関数
+ * 
+ * @param {string} sentiment - センチメント文字列
+ * @returns {number} センチメントスコア（0-100）
+ */
 function calculateSentimentScore(sentiment: string): number {
 	const sentimentMap: Record<string, number> = {
 		非常にポジティブ: 90,
@@ -275,6 +300,13 @@ function calculateSentimentScore(sentiment: string): number {
 	return sentimentMap[sentiment] || 50;
 }
 
+/**
+ * 市場データとセンチメントから総合評価を生成する関数
+ * 
+ * @param {CryptoData} marketData - 暗号通貨市場データ
+ * @param {string} sentiment - ニュースセンチメント
+ * @returns {string} 総合評価の日本語説明
+ */
 function generateOverallAssessment(
 	marketData: CryptoData,
 	sentiment: string,
@@ -297,6 +329,14 @@ function generateOverallAssessment(
 	return "混合的なシグナルで、慎重な観察が必要";
 }
 
+/**
+ * ボラティリティ、取引量、センチメントからリスクレベルを評価する関数
+ * 
+ * @param {number} volatility - ボラティリティ（価格変動率の絶対値）
+ * @param {number} volume - 24時間取引量（USD）
+ * @param {string} sentiment - ニュースセンチメント
+ * @returns {string} リスクレベル（高/中/低）
+ */
 function assessRiskLevel(
 	volatility: number,
 	volume: number,
@@ -321,6 +361,14 @@ function assessRiskLevel(
 	return "低";
 }
 
+/**
+ * 市場状況に基づく推奨サマリーを生成する関数
+ * 
+ * @param {number} priceChange - 24時間価格変動率
+ * @param {string} sentiment - ニュースセンチメント
+ * @param {number} newsCount - ニュース記事数
+ * @returns {string} 投資推奨サマリー
+ */
 function generateRecommendationSummary(
 	priceChange: number,
 	sentiment: string,
@@ -338,6 +386,13 @@ function generateRecommendationSummary(
 	return "混合的なシグナルのため、追加情報の収集を推奨";
 }
 
+/**
+ * 市場データとニュースから主要影響要因を特定する関数
+ * 
+ * @param {CryptoData} marketData - 暗号通貨市場データ
+ * @param {NewsArticle[]} articles - ニュース記事配列
+ * @returns {string[]} 主要影響要因の配列
+ */
 function identifyKeyFactors(
 	marketData: CryptoData,
 	articles: NewsArticle[],
@@ -360,6 +415,13 @@ function identifyKeyFactors(
 	return factors;
 }
 
+/**
+ * データ品質に基づく分析信頼度を計算する関数
+ * 
+ * @param {CryptoData} marketData - 市場データ
+ * @param {number} newsCount - ニュース記事数
+ * @returns {number} 信頼度スコア（0-95）
+ */
 function calculateConfidenceLevel(
 	marketData: CryptoData,
 	newsCount: number,
@@ -379,6 +441,12 @@ function calculateConfidenceLevel(
 	return Math.min(95, confidence);
 }
 
+/**
+ * 市場データからテクニカル指標を生成する関数（詳細分析用）
+ * 
+ * @param {CryptoData} marketData - 暗号通貨市場データ
+ * @returns {string[]} テクニカル指標の配列
+ */
 function generateTechnicalIndicators(marketData: CryptoData): string[] {
 	const indicators = [];
 
@@ -394,6 +462,12 @@ function generateTechnicalIndicators(marketData: CryptoData): string[] {
 	return indicators;
 }
 
+/**
+ * 時価総額による市場比較分析を生成する関数
+ * 
+ * @param {CryptoData} marketData - 暗号通貨市場データ
+ * @returns {string} 市場比較の説明文
+ */
 function generateMarketComparison(marketData: CryptoData): string {
 	const marketCap = marketData.market_cap_usd;
 
@@ -409,6 +483,13 @@ function generateMarketComparison(marketData: CryptoData): string {
 	return "マイクロキャップクラスの通貨";
 }
 
+/**
+ * 市場状況とセンチメントに基づく将来見通しを生成する関数
+ * 
+ * @param {CryptoData} marketData - 市場データ
+ * @param {string} sentiment - ニュースセンチメント
+ * @returns {string} 将来見通しの説明文
+ */
 function generateFutureOutlook(
 	marketData: CryptoData,
 	sentiment: string,
@@ -427,6 +508,12 @@ function generateFutureOutlook(
 	return "不確実性が高く、慎重な監視が必要";
 }
 
+/**
+ * 分析レポートオブジェクトから日本語レポートを生成する関数
+ * 
+ * @param {CryptoAnalysisReport} report - 構造化された分析レポート
+ * @returns {string} Markdown形式の日本語レポート
+ */
 function generateJapaneseReport(report: CryptoAnalysisReport): string {
 	const marketSummary = report.marketDataSummary;
 	const newsSummary = report.newsSentimentAnalysis;

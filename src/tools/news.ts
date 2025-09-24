@@ -29,6 +29,14 @@ interface NewsApiArticle {
  * 暗号通貨ニュース検索ツール
  * News APIを使用して指定されたキーワードで最新ニュースを検索
  * 暗号通貨関連のニュースに特化
+ * 
+ * @tool searchCryptoNews
+ * @description 指定された暗号通貨キーワードで最新ニュースを検索する（News API使用）
+ * @param {string} query - 検索キーワード（例：bitcoin, ethereum, cryptocurrency）
+ * @param {string} [language="en"] - 言語（デフォルト: en, 日本語: ja）
+ * @param {"relevancy"|"popularity"|"publishedAt"} [sortBy="publishedAt"] - ソート順（関連性、人気、公開日）
+ * @param {number} [pageSize=10] - 取得する記事数（最大100、デフォルト: 10）
+ * @returns {Promise<NewsSearchResponse>} ニュース記事、センチメント分析、サマリーを含むレスポンス
  */
 export const cryptoNewsSearchTool = createTool({
 	name: "searchCryptoNews",
