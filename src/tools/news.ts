@@ -129,9 +129,12 @@ export const cryptoNewsSearchTool = createTool({
 	},
 });
 
-// ヘルパー関数
-
-// News APIレスポンスをNewsArticleに変換する関数
+/**
+ * News APIレスポンスをNewsArticleに変換する関数
+ * 
+ * @param {NewsApiResponse} apiResponse - News APIからの生レスポンス
+ * @returns {NewsArticle[]} 標準化されたニュース記事の配列
+ */
 function makeNewsResponse(apiResponse: NewsApiResponse): NewsArticle[] {
 	return apiResponse.articles
 		.filter((article) => article.title && article.description)
@@ -144,8 +147,15 @@ function makeNewsResponse(apiResponse: NewsApiResponse): NewsArticle[] {
 			urlToImage: article.urlToImage || undefined,
 			content: article.content || undefined,
 		}));
-}	
+}
 
+/**
+ * テキスト内容と検索クエリから暗号通貨関連度を計算する関数
+ * 
+ * @param {string} text - 分析対象のテキスト（タイトル + 説明文）
+ * @param {string} query - 検索クエリ
+ * @returns {number} 関連度スコア（高いほど関連性が高い）
+ */
 function calculateCryptoRelevance(text: string, query: string): number {
 	const lowerText = text.toLowerCase();
 	const lowerQuery = query.toLowerCase();
@@ -181,6 +191,12 @@ function calculateCryptoRelevance(text: string, query: string): number {
 	return score;
 }
 
+/**
+ * ニュース記事群からセンチメントを分析する関数
+ * 
+ * @param {NewsArticle[]} articles - 分析対象のニュース記事配列
+ * @returns {string} センチメント判定結果（ポジティブ/ネガティブ/中立）
+ */
 function analyzeCryptoNewsSentiment(articles: NewsArticle[]): string {
 	if (articles.length === 0) return "中立";
 
@@ -229,6 +245,14 @@ function analyzeCryptoNewsSentiment(articles: NewsArticle[]): string {
 	return "中立";
 }
 
+/**
+ * ニュース検索結果のサマリーを生成する関数
+ * 
+ * @param {string} query - 検索クエリ
+ * @param {number} articleCount - 取得された記事数
+ * @param {string} sentiment - センチメント分析結果
+ * @returns {string} 日本語フォーマットされたサマリー文字列
+ */
 function generateNewsSearchSummary(
 	query: string,
 	articleCount: number,

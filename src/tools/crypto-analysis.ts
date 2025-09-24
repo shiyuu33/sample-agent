@@ -50,6 +50,13 @@ interface CryptoAnalysisReport {
  * 暗号通貨総合分析ツール
  * CoinGecko APIとNews APIを統合して暗号通貨の包括的分析レポートを生成
  * 市場データサマリー、最新ニュースのセンチメント、結論の3セクション構成
+ * 
+ * @tool analyzeCryptocurrency
+ * @description 指定された暗号通貨について市場データとニュースを統合分析し、日本語レポートを生成する
+ * @param {string} cryptoId - 分析する暗号通貨ID（例：bitcoin, ethereum, cardano, solana）
+ * @param {boolean} [includeDetailedAnalysis=false] - 詳細分析を含めるか（技術指標、市場比較等）
+ * @param {number} [newsCount=15] - 収集するニュース記事数（デフォルト: 15、最大: 20）
+ * @returns {Promise<CryptoAnalysisResponse>} 包括的な暗号通貨分析レポート
  */
 export const cryptoAnalysisTool = createTool({
 	name: "analyzeCryptocurrency",

@@ -11,13 +11,19 @@ import {
 } from "./tools";
 // import { cryptoAnalysisWorkflow } from "./workflows";
 
-// Create a logger instance
+/**
+ * アプリケーション用のロガーインスタンスを作成
+ * Pinoログライブラリを使用して構造化ログを出力
+ */
 const logger = createPinoLogger({
 	name: "crypto-analysis-agent",
 	level: "info",
 });
 
-// Configure persistent memory (LibSQL / SQLite)
+/**
+ * 永続メモリの設定（LibSQL / SQLite）
+ * エージェントの会話履歴と学習データを保存
+ */
 const memory = new Memory({
 	storage: new LibSQLMemoryAdapter({
 		url: "file:./.voltagent/memory.db",
@@ -55,6 +61,10 @@ const cryptoNewsAnalyst = new Agent({
 	memory,
 });
 
+/**
+ * VoltAgentシステムの初期化
+ * 複数のエージェント、ワークフロー、サーバー、ロガーを統合
+ */
 new VoltAgent({
 	agents: {
 		cryptoAgent,
