@@ -2,7 +2,7 @@ import { createTool } from "@voltagent/core";
 import axios from "axios";
 import { z } from "zod";
 import { config } from "../config";
-import type { NewsSearchResponse } from "../types";
+import type { NewsArticle, NewsSearchResponse } from "../types";
 
 interface NewsApiResponse {
 	status: string;
@@ -89,7 +89,7 @@ export const cryptoNewsSearchTool = createTool({
 					source: article.source.name,
 					urlToImage: article.urlToImage,
 					relevanceScore: calculateCryptoRelevance(
-						article.title + " " + article.description,
+						`${article.title} ${article.description}`,
 						query,
 					),
 				}))
@@ -152,16 +152,16 @@ function calculateCryptoRelevance(text: string, query: string): number {
 		"exchange",
 	];
 
-	cryptoKeywords.forEach((keyword) => {
+	for (const keyword of cryptoKeywords) {
 		if (lowerText.includes(keyword)) {
 			score += 1;
 		}
-	});
+	}
 
 	return score;
 }
 
-function analyzeCryptoNewsSentiment(articles: any[]): string {
+function analyzeCryptoNewsSentiment(articles: NewsArticle[]): string {
 	if (articles.length === 0) return "中立";
 
 	let positiveCount = 0;
@@ -192,17 +192,17 @@ function analyzeCryptoNewsSentiment(articles: any[]): string {
 		"concern",
 	];
 
-	articles.forEach((article) => {
-		const text = (article.title + " " + article.description).toLowerCase();
+	for (const article of articles) {
+		const text = `${article.title} ${article.description}`.toLowerCase();
 
-		positiveWords.forEach((word) => {
+		for (const word of positiveWords) {
 			if (text.includes(word)) positiveCount++;
-		});
+		}
 
-		negativeWords.forEach((word) => {
+		for (const word of negativeWords) {
 			if (text.includes(word)) negativeCount++;
-		});
-	});
+		}
+	}
 
 	if (positiveCount > negativeCount * 1.5) return "ポジティブ";
 	if (negativeCount > positiveCount * 1.5) return "ネガティブ";

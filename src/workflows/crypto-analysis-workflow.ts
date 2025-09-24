@@ -136,7 +136,7 @@ export const cryptoAnalysisWorkflow = createWorkflowChain({
 				data.newsAnalysisStatus === "success";
 
 			if (!hasRequiredData) {
-				console.log(`⚠️ データ不足のため部分的な分析のみ実行`);
+				console.log("⚠️ データ不足のため部分的な分析のみ実行");
 			}
 
 			// 統合分析の実行
@@ -272,7 +272,15 @@ function simulateNewsCollection(cryptoId: string, requestedCount: number) {
 	};
 }
 
-function performIntegratedAnalysis(data: any, hasRequiredData: boolean) {
+function performIntegratedAnalysis(
+	data: {
+		cryptoId: string;
+		newsCount: number;
+		marketDataQuality?: string;
+		articlesFound?: number;
+	},
+	hasRequiredData: boolean,
+) {
 	if (!hasRequiredData) {
 		return {
 			assessment: "データ不足により限定的な分析",
@@ -286,7 +294,8 @@ function performIntegratedAnalysis(data: any, hasRequiredData: boolean) {
 
 	// 価格センチメントと市場センチメントの統合分析
 	const priceAction = data.marketDataQuality === "high" ? "明確" : "不明確";
-	const newsImpact = data.articlesFound >= 8 ? "高い" : "低い";
+	const newsImpact =
+		data.articlesFound && data.articlesFound >= 8 ? "高い" : "低い";
 
 	return {
 		assessment: `${priceAction}な価格動向と${newsImpact}ニュース影響度による総合分析`,
@@ -342,7 +351,13 @@ function calculateAnalysisConfidence(
 	return Math.min(95, confidence);
 }
 
-function generateSummaryMessage(data: any) {
+function generateSummaryMessage(data: {
+	cryptoId: string;
+	analysisCompleted: boolean;
+	marketDataStatus?: string;
+	newsAnalysisStatus?: string;
+	articlesFound?: number;
+}) {
 	const cryptoName =
 		data.cryptoId.charAt(0).toUpperCase() + data.cryptoId.slice(1);
 	const status = data.analysisCompleted ? "完了" : "部分完了";

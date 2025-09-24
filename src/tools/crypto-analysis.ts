@@ -1,5 +1,11 @@
 import { createTool } from "@voltagent/core";
 import { z } from "zod";
+import type {
+	CryptoData,
+	CryptoDataResponse,
+	NewsArticle,
+	NewsSearchResponse,
+} from "../types";
 import { cryptoDataTool } from "./crypto";
 import { cryptoNewsSearchTool } from "./news";
 
@@ -80,7 +86,7 @@ export const cryptoAnalysisTool = createTool({
 			const marketDataResult = (await cryptoDataTool.execute({
 				cryptoId: validatedCryptoId,
 				vs_currencies: ["usd", "jpy"],
-			})) as any;
+			})) as CryptoDataResponse;
 
 			if (marketDataResult.error) {
 				const errorMessage = `${validatedCryptoId}の市場データ取得に失敗しました: ${marketDataResult.message}`;
@@ -89,6 +95,11 @@ export const cryptoAnalysisTool = createTool({
 			}
 
 			const marketData = marketDataResult.data;
+			if (!marketData) {
+				const errorMessage = `${validatedCryptoId}の市場データが取得できませんでした`;
+				console.error(`❌ 市場データエラー: ${errorMessage}`);
+				throw new Error(errorMessage);
+			}
 
 			// 2. 関連ニュースの収集
 			console.log("📰 News APIから関連ニュースを収集中...");
@@ -97,7 +108,7 @@ export const cryptoAnalysisTool = createTool({
 				language: "en",
 				sortBy: "publishedAt",
 				pageSize: validatedNewsCount,
-			})) as any;
+			})) as NewsSearchResponse;
 
 			// ニュース取得でエラーが発生した場合は処理を停止
 			if (newsResult.error) {
@@ -107,7 +118,7 @@ export const cryptoAnalysisTool = createTool({
 			}
 
 			const newsData = newsResult;
-			const articles = newsData.articles || [];
+			const articles = newsData.data || [];
 
 			// 3. 分析レポートの生成
 			console.log("🔍 統合分析レポートを生成中...");
@@ -207,7 +218,7 @@ function analyzeVolatility(priceChangePercent: number): string {
 	return "非常に低い";
 }
 
-function extractKeyTopics(articles: any[]): string[] {
+function extractKeyTopics(articles: NewsArticle[]): string[] {
 	const topics = [
 		"価格変動",
 		"技術開発",
@@ -246,7 +257,7 @@ function extractKeyTopics(articles: any[]): string[] {
 	});
 }
 
-function countRecentNews(articles: any[], hours: number): number {
+function countRecentNews(articles: NewsArticle[], hours: number): number {
 	const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
 	return articles.filter((article) => new Date(article.publishedAt) > cutoff)
 		.length;
@@ -263,7 +274,10 @@ function calculateSentimentScore(sentiment: string): number {
 	return sentimentMap[sentiment] || 50;
 }
 
-function generateOverallAssessment(marketData: any, sentiment: string): string {
+function generateOverallAssessment(
+	marketData: CryptoData,
+	sentiment: string,
+): string {
 	const priceChange = marketData.price_change_percentage_24h;
 	const volume = marketData.total_volume_usd;
 
@@ -323,7 +337,10 @@ function generateRecommendationSummary(
 	return "混合的なシグナルのため、追加情報の収集を推奨";
 }
 
-function identifyKeyFactors(marketData: any, articles: any[]): string[] {
+function identifyKeyFactors(
+	marketData: CryptoData,
+	articles: NewsArticle[],
+): string[] {
 	const factors = [];
 
 	if (Math.abs(marketData.price_change_percentage_24h) > 5) {
@@ -342,7 +359,10 @@ function identifyKeyFactors(marketData: any, articles: any[]): string[] {
 	return factors;
 }
 
-function calculateConfidenceLevel(marketData: any, newsCount: number): number {
+function calculateConfidenceLevel(
+	marketData: CryptoData,
+	newsCount: number,
+): number {
 	let confidence = 50;
 
 	// ニュース数による信頼度
@@ -358,7 +378,7 @@ function calculateConfidenceLevel(marketData: any, newsCount: number): number {
 	return Math.min(95, confidence);
 }
 
-function generateTechnicalIndicators(marketData: any): string[] {
+function generateTechnicalIndicators(marketData: CryptoData): string[] {
 	const indicators = [];
 
 	const priceChange = marketData.price_change_percentage_24h;
@@ -373,7 +393,7 @@ function generateTechnicalIndicators(marketData: any): string[] {
 	return indicators;
 }
 
-function generateMarketComparison(marketData: any): string {
+function generateMarketComparison(marketData: CryptoData): string {
 	const marketCap = marketData.market_cap_usd;
 
 	if (marketCap > 100000000000) {
@@ -388,7 +408,10 @@ function generateMarketComparison(marketData: any): string {
 	return "マイクロキャップクラスの通貨";
 }
 
-function generateFutureOutlook(marketData: any, sentiment: string): string {
+function generateFutureOutlook(
+	marketData: CryptoData,
+	sentiment: string,
+): string {
 	const priceChange = marketData.price_change_percentage_24h;
 
 	if (priceChange > 10 && sentiment === "ポジティブ") {
