@@ -47,18 +47,21 @@ export const cryptoDataTool = createTool({
 			console.log(`🔍 ${cryptoId}の市場データを取得中...`);
 
 			// APIリクエスト
-			const response = await axios.get(`${config.apis.coinGecko.baseUrl}/coins/${cryptoId}`, {
-				params: {
-					localization: false,
-					tickers: false,
-					market_data: true,
-					community_data: false,
-					developer_data: false,
-					sparkline: false,
+			const response = await axios.get(
+				`${config.apis.coinGecko.baseUrl}/coins/${cryptoId}`,
+				{
+					params: {
+						localization: false,
+						tickers: false,
+						market_data: true,
+						community_data: false,
+						developer_data: false,
+						sparkline: false,
+					},
+					headers: config.apis.coinGecko.headers,
+					timeout: config.apis.coinGecko.timeout,
 				},
-				headers: config.apis.coinGecko.headers,
-				timeout: config.apis.coinGecko.timeout,
-			});
+			);
 
 			if (!response.data || !response.data.market_data) {
 				return {

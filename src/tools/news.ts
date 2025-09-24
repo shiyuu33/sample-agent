@@ -2,7 +2,7 @@ import { createTool } from "@voltagent/core";
 import axios from "axios";
 import { z } from "zod";
 import { config } from "../config";
-import { type NewsSearchResponse } from "../types";
+import type { NewsSearchResponse } from "../types";
 
 interface NewsApiResponse {
 	status: string;
@@ -219,10 +219,11 @@ function generateNewsSearchSummary(
 📊 市場センチメント: ${sentiment}
 🕐 検索時刻: ${new Date().toLocaleString("ja-JP")}
 
-${sentiment === "ポジティブ"
-			? "📈 市場に対する楽観的な見方が多く見られます。"
-			: sentiment === "ネガティブ"
-				? "📉 市場に対する慎重な見方が増えています。"
-				: "⚖️ ポジティブとネガティブなニュースが混在しています。"
-		}`;
+${
+	sentiment === "ポジティブ"
+		? "📈 市場に対する楽観的な見方が多く見られます。"
+		: sentiment === "ネガティブ"
+			? "📉 市場に対する慎重な見方が増えています。"
+			: "⚖️ ポジティブとネガティブなニュースが混在しています。"
+}`;
 }

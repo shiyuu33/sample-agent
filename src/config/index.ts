@@ -18,8 +18,7 @@ export const config: AppConfig = {
 			headers: {
 				"X-API-Key": `${process.env.NEWS_API_KEY}`,
 				Accept: "application/json",
-			}
+			},
 		},
 	},
 } as const;
-
