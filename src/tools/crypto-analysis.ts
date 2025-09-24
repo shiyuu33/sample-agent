@@ -47,7 +47,8 @@ interface CryptoAnalysisReport {
  */
 export const cryptoAnalysisTool = createTool({
 	name: "analyzeCryptocurrency",
-	description: "指定された暗号通貨について市場データとニュースを統合分析し、日本語レポートを生成する",
+	description:
+		"指定された暗号通貨について市場データとニュースを統合分析し、日本語レポートを生成する",
 	parameters: z.object({
 		cryptoId: z
 			.string()
@@ -63,7 +64,11 @@ export const cryptoAnalysisTool = createTool({
 			.default(10)
 			.describe("収集するニュース記事数（デフォルト: 10、最大: 20）"),
 	}),
-	execute: async ({ cryptoId, includeDetailedAnalysis = false, newsCount = 10 }) => {
+	execute: async ({
+		cryptoId,
+		includeDetailedAnalysis = false,
+		newsCount = 10,
+	}) => {
 		// パラメータの型チェックと制限
 		const validatedCryptoId = cryptoId as string;
 		const validatedNewsCount = Math.min(Math.max(newsCount as number, 1), 20); // 1-20の範囲に制限
@@ -72,10 +77,10 @@ export const cryptoAnalysisTool = createTool({
 
 			// 1. 市場データの取得
 			console.log("📊 CoinGecko APIから市場データを取得中...");
-			const marketDataResult = await cryptoDataTool.execute({
+			const marketDataResult = (await cryptoDataTool.execute({
 				cryptoId: validatedCryptoId,
-				vs_currencies: ["usd", "jpy"]
-			}) as any;
+				vs_currencies: ["usd", "jpy"],
+			})) as any;
 
 			if (marketDataResult.error) {
 				const errorMessage = `${validatedCryptoId}の市場データ取得に失敗しました: ${marketDataResult.message}`;
@@ -87,12 +92,12 @@ export const cryptoAnalysisTool = createTool({
 
 			// 2. 関連ニュースの収集
 			console.log("📰 News APIから関連ニュースを収集中...");
-			const newsResult = await cryptoNewsSearchTool.execute({
+			const newsResult = (await cryptoNewsSearchTool.execute({
 				query: validatedCryptoId,
 				language: "en",
 				sortBy: "publishedAt",
-				pageSize: validatedNewsCount
-			}) as any;
+				pageSize: validatedNewsCount,
+			})) as any;
 
 			// ニュース取得でエラーが発生した場合は処理を停止
 			if (newsResult.error) {
@@ -121,7 +126,9 @@ export const cryptoAnalysisTool = createTool({
 					priceChangePercentage24h: marketData.price_change_percentage_24h,
 					marketCapUsd: marketData.market_cap_usd,
 					volumeUsd: marketData.total_volume_usd,
-					volatilityLevel: analyzeVolatility(marketData.price_change_percentage_24h),
+					volatilityLevel: analyzeVolatility(
+						marketData.price_change_percentage_24h,
+					),
 				},
 
 				// ニュースセンチメント分析
@@ -135,19 +142,25 @@ export const cryptoAnalysisTool = createTool({
 
 				// 結論
 				conclusion: {
-					overallAssessment: generateOverallAssessment(marketData, newsData.sentiment || "中立"),
+					overallAssessment: generateOverallAssessment(
+						marketData,
+						newsData.sentiment || "中立",
+					),
 					riskLevel: assessRiskLevel(
 						Math.abs(marketData.price_change_percentage_24h),
 						marketData.total_volume_usd,
-						newsData.sentiment || "中立"
+						newsData.sentiment || "中立",
 					),
 					recommendationSummary: generateRecommendationSummary(
 						marketData.price_change_percentage_24h,
 						newsData.sentiment || "中立",
-						articles.length
+						articles.length,
 					),
 					keyFactors: identifyKeyFactors(marketData, articles),
-					confidenceLevel: calculateConfidenceLevel(marketData, articles.length),
+					confidenceLevel: calculateConfidenceLevel(
+						marketData,
+						articles.length,
+					),
 				},
 			};
 
@@ -156,7 +169,10 @@ export const cryptoAnalysisTool = createTool({
 				report.detailedAnalysis = {
 					technicalIndicators: generateTechnicalIndicators(marketData),
 					marketComparison: generateMarketComparison(marketData),
-					futureOutlook: generateFutureOutlook(marketData, newsData.sentiment || "中立"),
+					futureOutlook: generateFutureOutlook(
+						marketData,
+						newsData.sentiment || "中立",
+					),
 				};
 			}
 
@@ -170,9 +186,8 @@ export const cryptoAnalysisTool = createTool({
 				marketData: marketDataResult,
 				newsData: newsData,
 				message: `${report.cryptoName} (${report.symbol})の包括的分析レポートを生成しました。`,
-				timestamp: new Date().toISOString()
+				timestamp: new Date().toISOString(),
 			};
-
 		} catch (error) {
 			const errorMessage = `${validatedCryptoId}の総合分析に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`;
 			console.error(`❌ 分析処理エラー: ${errorMessage}`);
@@ -194,48 +209,56 @@ function analyzeVolatility(priceChangePercent: number): string {
 
 function extractKeyTopics(articles: any[]): string[] {
 	const topics = [
-		"価格変動", "技術開発", "規制", "採用", "パートナーシップ", 
-		"DeFi", "NFT", "機関投資", "アップデート", "セキュリティ"
+		"価格変動",
+		"技術開発",
+		"規制",
+		"採用",
+		"パートナーシップ",
+		"DeFi",
+		"NFT",
+		"機関投資",
+		"アップデート",
+		"セキュリティ",
 	];
-	
-	return topics.filter(topic => {
+
+	return topics.filter((topic) => {
 		const topicKeywords: Record<string, string[]> = {
-			"価格変動": ["price", "surge", "drop", "rally", "crash", "pump"],
-			"技術開発": ["development", "upgrade", "technology", "innovation"],
-			"規制": ["regulation", "regulatory", "compliance", "legal"],
-			"採用": ["adoption", "mainstream", "institutional", "integration"],
-			"パートナーシップ": ["partnership", "collaboration", "alliance"],
-			"DeFi": ["defi", "decentralized", "yield", "liquidity"],
-			"NFT": ["nft", "collectible", "digital art"],
-			"機関投資": ["institutional", "fund", "investment", "corporate"],
-			"アップデート": ["update", "upgrade", "release", "launch"],
-			"セキュリティ": ["security", "hack", "vulnerability", "breach"]
+			価格変動: ["price", "surge", "drop", "rally", "crash", "pump"],
+			技術開発: ["development", "upgrade", "technology", "innovation"],
+			規制: ["regulation", "regulatory", "compliance", "legal"],
+			採用: ["adoption", "mainstream", "institutional", "integration"],
+			パートナーシップ: ["partnership", "collaboration", "alliance"],
+			DeFi: ["defi", "decentralized", "yield", "liquidity"],
+			NFT: ["nft", "collectible", "digital art"],
+			機関投資: ["institutional", "fund", "investment", "corporate"],
+			アップデート: ["update", "upgrade", "release", "launch"],
+			セキュリティ: ["security", "hack", "vulnerability", "breach"],
 		};
-		
+
 		const keywords = topicKeywords[topic] || [];
-		return articles.some(article => 
-			keywords.some(keyword => 
-				article.title?.toLowerCase().includes(keyword) || 
-				article.description?.toLowerCase().includes(keyword)
-			)
+		return articles.some((article) =>
+			keywords.some(
+				(keyword) =>
+					article.title?.toLowerCase().includes(keyword) ||
+					article.description?.toLowerCase().includes(keyword),
+			),
 		);
 	});
 }
 
 function countRecentNews(articles: any[], hours: number): number {
 	const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-	return articles.filter(article => 
-		new Date(article.publishedAt) > cutoff
-	).length;
+	return articles.filter((article) => new Date(article.publishedAt) > cutoff)
+		.length;
 }
 
 function calculateSentimentScore(sentiment: string): number {
 	const sentimentMap: Record<string, number> = {
-		"非常にポジティブ": 90,
-		"ポジティブ": 70,
-		"中立": 50,
-		"ネガティブ": 30,
-		"非常にネガティブ": 10
+		非常にポジティブ: 90,
+		ポジティブ: 70,
+		中立: 50,
+		ネガティブ: 30,
+		非常にネガティブ: 10,
 	};
 	return sentimentMap[sentiment] || 50;
 }
@@ -243,7 +266,7 @@ function calculateSentimentScore(sentiment: string): number {
 function generateOverallAssessment(marketData: any, sentiment: string): string {
 	const priceChange = marketData.price_change_percentage_24h;
 	const volume = marketData.total_volume_usd;
-	
+
 	if (priceChange > 10 && sentiment === "ポジティブ") {
 		return "強力な上昇トレンドで、市場センチメントも良好";
 	}
@@ -259,26 +282,35 @@ function generateOverallAssessment(marketData: any, sentiment: string): string {
 	return "混合的なシグナルで、慎重な観察が必要";
 }
 
-function assessRiskLevel(volatility: number, volume: number, sentiment: string): string {
+function assessRiskLevel(
+	volatility: number,
+	volume: number,
+	sentiment: string,
+): string {
 	let riskScore = 0;
-	
+
 	// ボラティリティによるリスク
 	if (volatility > 15) riskScore += 3;
 	else if (volatility > 10) riskScore += 2;
 	else if (volatility > 5) riskScore += 1;
-	
+
 	// 取引量によるリスク調整
 	if (volume < 100000000) riskScore += 1; // 低流動性リスク
-	
+
 	// センチメントによるリスク調整
-	if (sentiment === "ネガティブ" || sentiment === "非常にネガティブ") riskScore += 1;
-	
+	if (sentiment === "ネガティブ" || sentiment === "非常にネガティブ")
+		riskScore += 1;
+
 	if (riskScore >= 4) return "高";
 	if (riskScore >= 2) return "中";
 	return "低";
 }
 
-function generateRecommendationSummary(priceChange: number, sentiment: string, newsCount: number): string {
+function generateRecommendationSummary(
+	priceChange: number,
+	sentiment: string,
+	newsCount: number,
+): string {
 	if (priceChange > 5 && sentiment === "ポジティブ" && newsCount >= 5) {
 		return "上昇トレンドと良好なニュースフローにより、短期的に楽観視";
 	}
@@ -293,7 +325,7 @@ function generateRecommendationSummary(priceChange: number, sentiment: string, n
 
 function identifyKeyFactors(marketData: any, articles: any[]): string[] {
 	const factors = [];
-	
+
 	if (Math.abs(marketData.price_change_percentage_24h) > 5) {
 		factors.push("大幅な価格変動");
 	}
@@ -306,44 +338,44 @@ function identifyKeyFactors(marketData: any, articles: any[]): string[] {
 	if (marketData.market_cap_usd > 10000000000) {
 		factors.push("大型時価総額");
 	}
-	
+
 	return factors;
 }
 
 function calculateConfidenceLevel(marketData: any, newsCount: number): number {
 	let confidence = 50;
-	
+
 	// ニュース数による信頼度
 	confidence += Math.min(newsCount * 3, 30);
-	
+
 	// 取引量による信頼度
 	if (marketData.total_volume_usd > 1000000000) confidence += 10;
 	else if (marketData.total_volume_usd > 100000000) confidence += 5;
-	
+
 	// 時価総額による信頼度
 	if (marketData.market_cap_usd > 10000000000) confidence += 10;
-	
+
 	return Math.min(95, confidence);
 }
 
 function generateTechnicalIndicators(marketData: any): string[] {
 	const indicators = [];
-	
+
 	const priceChange = marketData.price_change_percentage_24h;
 	if (priceChange > 5) indicators.push("短期上昇モメンタム");
 	if (priceChange < -5) indicators.push("短期下落モメンタム");
 	if (Math.abs(priceChange) < 2) indicators.push("価格レンジ内推移");
-	
+
 	const volume = marketData.total_volume_usd;
 	if (volume > 1000000000) indicators.push("高流動性");
 	else if (volume < 100000000) indicators.push("低流動性リスク");
-	
+
 	return indicators;
 }
 
 function generateMarketComparison(marketData: any): string {
 	const marketCap = marketData.market_cap_usd;
-	
+
 	if (marketCap > 100000000000) {
 		return "ビットコイン・イーサリアムレベルの大型通貨";
 	}
@@ -358,7 +390,7 @@ function generateMarketComparison(marketData: any): string {
 
 function generateFutureOutlook(marketData: any, sentiment: string): string {
 	const priceChange = marketData.price_change_percentage_24h;
-	
+
 	if (priceChange > 10 && sentiment === "ポジティブ") {
 		return "短期的な上昇トレンド継続の可能性が高い";
 	}
@@ -385,8 +417,8 @@ function generateJapaneseReport(report: CryptoAnalysisReport): string {
 - JPY: ¥${marketSummary.currentPriceJpy.toLocaleString()}
 
 **24時間変動:**
-- 価格変動: ${marketSummary.priceChangePercentage24h >= 0 ? '+' : ''}${marketSummary.priceChangePercentage24h.toFixed(2)}%
-- 変動額: ${marketSummary.priceChange24h >= 0 ? '+' : ''}$${marketSummary.priceChange24h.toFixed(4)}
+- 価格変動: ${marketSummary.priceChangePercentage24h >= 0 ? "+" : ""}${marketSummary.priceChangePercentage24h.toFixed(2)}%
+- 変動額: ${marketSummary.priceChange24h >= 0 ? "+" : ""}$${marketSummary.priceChange24h.toFixed(4)}
 
 **市場指標:**
 - 時価総額: $${(marketSummary.marketCapUsd / 1000000000).toFixed(2)}B
@@ -402,7 +434,7 @@ function generateJapaneseReport(report: CryptoAnalysisReport): string {
 - センチメントスコア: ${newsSummary.sentimentScore}/100
 
 **主要トピック:**
-${newsSummary.keyTopics.map(topic => `- ${topic}`).join('\n')}
+${newsSummary.keyTopics.map((topic) => `- ${topic}`).join("\n")}
 
 ## 🎯 結論
 
@@ -415,13 +447,13 @@ ${conclusion.overallAssessment}
 ${conclusion.recommendationSummary}
 
 **主要要因:**
-${conclusion.keyFactors.map(factor => `- ${factor}`).join('\n')}
+${conclusion.keyFactors.map((factor) => `- ${factor}`).join("\n")}
 
 **分析信頼度:** ${conclusion.confidenceLevel}%
 
 ---
 
-*分析日時: ${new Date(report.analysisDate).toLocaleString('ja-JP')}*
+*分析日時: ${new Date(report.analysisDate).toLocaleString("ja-JP")}*
 
 **⚠️ 重要な免責事項:**
 このレポートは情報提供のみを目的としており、投資助言ではありません。暗号通貨投資には高いリスクが伴います。投資判断は自己責任で行ってください。`;

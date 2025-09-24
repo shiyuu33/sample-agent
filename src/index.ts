@@ -4,12 +4,16 @@ import { Agent, Memory, VoltAgent, VoltOpsClient } from "@voltagent/core";
 import { LibSQLMemoryAdapter } from "@voltagent/libsql";
 import { createPinoLogger } from "@voltagent/logger";
 import { honoServer } from "@voltagent/server-hono";
-import { cryptoAnalysisTool, cryptoDataTool, cryptoNewsSearchTool } from "./tools";
+import {
+	cryptoAnalysisTool,
+	cryptoDataTool,
+	cryptoNewsSearchTool,
+} from "./tools";
 import { cryptoAnalysisWorkflow } from "./workflows";
 
 // Create a logger instance
 const logger = createPinoLogger({
-	name: "sample-agent",
+	name: "crypto-analysis-agent",
 	level: "info",
 });
 

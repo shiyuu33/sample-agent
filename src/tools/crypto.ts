@@ -1,6 +1,7 @@
 import { createTool } from "@voltagent/core";
-import { z } from "zod";
 import axios from "axios";
+import { z } from "zod";
+import { config } from "../config";
 
 // 暗号通貨データの型定義
 interface CryptoData {
@@ -20,20 +21,6 @@ interface CryptoData {
 	last_updated: string;
 }
 
-interface CryptoApiResponse {
-	id: string;
-	symbol: string;
-	name: string;
-	current_price: number;
-	market_cap: number;
-	total_volume: number;
-	price_change_24h: number;
-	price_change_percentage_24h: number;
-	market_cap_change_24h: number;
-	market_cap_change_percentage_24h: number;
-	last_updated: string;
-}
-
 /**
  * 暗号通貨市場データ取得ツール
  * CoinGecko APIを使用して指定された暗号通貨の最新市場データを取得
@@ -41,11 +28,14 @@ interface CryptoApiResponse {
  */
 export const cryptoDataTool = createTool({
 	name: "getCryptoData",
-	description: "指定された暗号通貨の現在の市場データを取得する（CoinGecko API使用）",
+	description:
+		"指定された暗号通貨の現在の市場データを取得する（CoinGecko API使用）",
 	parameters: z.object({
 		cryptoId: z
 			.string()
-			.describe("暗号通貨ID（例：bitcoin, ethereum, cardano, solana, dogecoin）"),
+			.describe(
+				"暗号通貨ID（例：bitcoin, ethereum, cardano, solana, dogecoin）",
+			),
 		vs_currencies: z
 			.array(z.string())
 			.optional()
@@ -56,43 +46,43 @@ export const cryptoDataTool = createTool({
 		try {
 			console.log(`🔍 ${cryptoId}の市場データを取得中...`);
 
-			// CoinGecko API エンドポイント
-			const baseUrl = "https://api.coingecko.com/api/v3";
-			const endpoint = `/coins/${cryptoId}`;
-
 			// APIリクエスト
-			const response = await axios.get(`${baseUrl}${endpoint}`, {
+			const response = await axios.get(`${config.apis.coinGecko.baseUrl}/coins/${cryptoId}`, {
 				params: {
 					localization: false,
 					tickers: false,
 					market_data: true,
 					community_data: false,
 					developer_data: false,
-					sparkline: false
+					sparkline: false,
 				},
-				headers: {
-					'Accept': 'application/json',
-				},
-				timeout: 10000, // 10秒タイムアウト
+				headers: config.apis.coinGecko.headers,
+				timeout: config.apis.coinGecko.timeout,
 			});
 
-			const data = response.data;
-
-			if (!data || !data.market_data) {
+			if (!response.data || !response.data.market_data) {
 				return {
 					cryptoId: cryptoId,
 					error: "市場データが見つかりません",
 					message: `暗号通貨「${cryptoId}」の市場データを取得できませんでした。正しいIDを確認してください。`,
-					suggestedIds: ["bitcoin", "ethereum", "cardano", "solana", "dogecoin", "chainlink", "polkadot"]
+					suggestedIds: [
+						"bitcoin",
+						"ethereum",
+						"cardano",
+						"solana",
+						"dogecoin",
+						"chainlink",
+						"polkadot",
+					],
 				};
 			}
 
 			// データの整形
-			const marketData = data.market_data;
+			const marketData = response.data.market_data;
 			const cryptoData: CryptoData = {
-				id: data.id,
-				symbol: data.symbol?.toUpperCase() || "N/A",
-				name: data.name || "N/A",
+				id: response.data.id,
+				symbol: response.data.symbol?.toUpperCase() || "N/A",
+				name: response.data.name || "N/A",
 				current_price_usd: marketData.current_price?.usd || 0,
 				current_price_jpy: marketData.current_price?.jpy || 0,
 				market_cap_usd: marketData.market_cap?.usd || 0,
@@ -100,60 +90,46 @@ export const cryptoDataTool = createTool({
 				total_volume_usd: marketData.total_volume?.usd || 0,
 				total_volume_jpy: marketData.total_volume?.jpy || 0,
 				price_change_24h: marketData.price_change_24h || 0,
-				price_change_percentage_24h: marketData.price_change_percentage_24h || 0,
+				price_change_percentage_24h:
+					marketData.price_change_percentage_24h || 0,
 				market_cap_change_24h: marketData.market_cap_change_24h || 0,
-				market_cap_change_percentage_24h: marketData.market_cap_change_percentage_24h || 0,
-				last_updated: marketData.last_updated || new Date().toISOString()
+				market_cap_change_percentage_24h:
+					marketData.market_cap_change_percentage_24h || 0,
+				last_updated: marketData.last_updated || new Date().toISOString(),
 			};
 
 			// 取引量分析
 			const volumeAnalysis = analyzeVolume(cryptoData.total_volume_usd);
 
 			// 価格変動分析
-			const volatilityAnalysis = analyzeVolatility(cryptoData.price_change_percentage_24h);
+			const volatilityAnalysis = analyzeVolatility(
+				cryptoData.price_change_percentage_24h,
+			);
 
 			// 市場キャップ分析
 			const marketCapAnalysis = analyzeMarketCap(cryptoData.market_cap_usd);
 
-			const message = generateCryptoSummary(cryptoData, volumeAnalysis, volatilityAnalysis, marketCapAnalysis);
+			const message = generateCryptoSummary(
+				response.data,
+				volumeAnalysis,
+				volatilityAnalysis,
+				marketCapAnalysis,
+			);
 
 			return {
-				cryptoId: cryptoData.id,
+				cryptoId: response.data.id,
 				data: cryptoData,
 				analysis: {
 					volume: volumeAnalysis,
 					volatility: volatilityAnalysis,
-					marketCap: marketCapAnalysis
+					marketCap: marketCapAnalysis,
 				},
 				message: message,
-				timestamp: new Date().toISOString()
+				timestamp: new Date().toISOString(),
 			};
-
 		} catch (error) {
 			console.error(`❌ ${cryptoId}の市場データ取得中にエラー:`, error);
-
-			if (axios.isAxiosError(error)) {
-				if (error.response?.status === 404) {
-					const errorMessage = `暗号通貨ID「${cryptoId}」は存在しません。正しいIDを確認してください。`;
-					console.error(`❌ 暗号通貨が見つかりません: ${errorMessage}`);
-					throw new Error(errorMessage);
-				}
-				if (error.response?.status === 429) {
-					const errorMessage = "CoinGecko APIのリクエスト制限に達しました。しばらく待ってから再試行してください。";
-					console.error(`❌ APIレート制限: ${errorMessage}`);
-					throw new Error(errorMessage);
-				}
-				if (error.response?.status === 403) {
-					const errorMessage = "CoinGecko APIへのアクセスが拒否されました。API権限を確認してください。";
-					console.error(`❌ APIアクセス拒否: ${errorMessage}`);
-					throw new Error(errorMessage);
-				}
-			}
-
-			// その他のエラーもすべて再スローして処理を停止
-			const errorMessage = `${cryptoId}の市場データ取得に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`;
-			console.error(`❌ データ取得エラー: ${errorMessage}`);
-			throw new Error(errorMessage);
+			throw new Error("CoinGecko API");
 		}
 	},
 });
@@ -189,9 +165,10 @@ function generateCryptoSummary(
 	data: CryptoData,
 	volumeAnalysis: string,
 	volatilityAnalysis: string,
-	marketCapAnalysis: string
+	marketCapAnalysis: string,
 ): string {
-	const changeDirection = data.price_change_percentage_24h >= 0 ? "上昇" : "下降";
+	const changeDirection =
+		data.price_change_percentage_24h >= 0 ? "上昇" : "下降";
 	const changeIcon = data.price_change_percentage_24h >= 0 ? "📈" : "📉";
 
 	return `🪙 ${data.name} (${data.symbol}) 市場データ:
@@ -213,5 +190,5 @@ ${changeIcon} 24時間変動:
   - 取引量: ${volumeAnalysis}
   - ボラティリティ: ${volatilityAnalysis}
   
-最終更新: ${new Date(data.last_updated).toLocaleString('ja-JP')}`;
+最終更新: ${new Date(data.last_updated).toLocaleString("ja-JP")}`;
 }
