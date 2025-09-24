@@ -1,251 +1,114 @@
-<div align="center">
-  <h1>⚡ sample-agent</h1>
-  <p>AI Agent powered by <a href="https://voltagent.dev">VoltAgent</a></p>
-  
-  <p>
-    <a href="https://github.com/voltagent/voltagent"><img src="https://img.shields.io/badge/built%20with-VoltAgent-blue" alt="Built with VoltAgent" /></a>
-    <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen" alt="Node Version" /></a>
-  </p>
-</div>
+## 🎯 概要
 
-## 🚀 Quick Start
+この**VoltAgent暗号通貨分析デモ**は、TypeScript製AIエージェントフレームワークVoltAgentの主要機能を実演するサンプルアプリケーションです。
 
-### Prerequisites
+**マルチエージェントアーキテクチャ**により、複数の専門エージェントが連携して暗号通貨の包括的な市場分析を行います。
 
-- Node.js 20+ 
-- Git
-- Google API Key (optional - can configure later)
-  - Get your key at: https://aistudio.google.com/app/apikey
+### ✨ 主な特徴
 
-### Installation
+- 🤖 **マルチエージェント連携**: 司令塔 + 専門エージェント構成
+- 📊 **リアルタイム市場データ**: CoinGecko API統合
+- 📰 **ニュース分析**: News API + センチメント分析
+- 🧠 **永続メモリ**: LibSQL（SQLite）による会話履歴管理
+- 👀 **可観測性**: VoltOpsによるリアルタイム監視
+- 🛡️ **型安全性**: TypeScript + Zod完全対応
+
+
+### インストール
 
 ```bash
-# Clone the repository (if not created via create-voltagent-app)
-git clone <your-repo-url>
+# リポジトリをクローン
+git clone https://github.com/your-repo/sample-agent
 cd sample-agent
 
-# Install dependencies
-npm install
+# 依存関係をインストール
+npm ci
 
-# Copy environment variables
+# 環境変数をセットアップ
 cp .env.example .env
 ```
 
-### Configuration
-
-Edit `.env` file with your API keys:
-
-```env
-GOOGLE_GENERATIVE_AI_API_KEY=your-api-key-here
-
-# VoltOps Platform (Optional)
-# Get your keys at https://console.voltagent.dev/tracing-setup
-# VOLTAGENT_PUBLIC_KEY=your-public-key
-# VOLTAGENT_SECRET_KEY=your-secret-key
-```
-
-### Running the Application
+### 実行
 
 ```bash
-# Development mode (with hot reload)
+# 開発モード（ホットリロード）
 npm run dev
 
-# Production build
+# 本番ビルド
 npm run build
-
-# Start production server
 npm start
 ```
 
-## 🎯 Features
+アプリケーションは `http://localhost:3141` で起動します。
 
-This VoltAgent application includes:
+## 📊 VoltOps監視
 
-- **AI Agent**: Powered by Google (Gemini 2.0 Flash)
-- **Workflows**: Pre-configured expense approval workflow
-- **Memory**: Built-in conversation history
-- **Tools**: Extensible tool system
-- **Type Safety**: Full TypeScript support
+### ローカル開発
 
-## 🔍 VoltOps Platform
+1. アプリケーション起動: `npm run dev`
+2. [VoltOps Console](https://console.voltagent.dev)にアクセス
+3. 自動的に`localhost:3141`に接続
 
-### Local Development
-The VoltOps Platform provides real-time observability for your agents during development:
+### 監視機能
 
-1. **Start your agent**: Run `npm run dev`
-2. **Open console**: Visit [console.voltagent.dev](https://console.voltagent.dev)
-3. **Auto-connect**: The console connects to your local agent at `http://localhost:3141`
+- 🔍 **リアルタイム実行可視化**: エージェント間通信の追跡
+- 🐛 **ステップバイステップデバッグ**: 各処理段階の詳細確認
+- 📈 **パフォーマンス分析**: レスポンス時間・成功率の監視
+- 💾 **データプライバシー**: すべてのデータはローカルに保持
 
-Features:
-- 🔍 Real-time execution visualization
-- 🐛 Step-by-step debugging
-- 📊 Performance insights
-- 💾 No data leaves your machine
-
-### Production Monitoring
-For production environments, configure VoltOpsClient:
-
-1. **Create a project**: Sign up at [console.voltagent.dev/tracing-setup](https://console.voltagent.dev/tracing-setup)
-2. **Get your keys**: Copy your Public and Secret keys
-3. **Add to .env**:
-   ```env
-   VOLTAGENT_PUBLIC_KEY=your-public-key
-   VOLTAGENT_SECRET_KEY=your-secret-key
-   ```
-4. **Configure in code**: The template already includes VoltOpsClient setup!
-
-## 📁 Project Structure
+## 📁 プロジェクト構造
 
 ```
 sample-agent/
 ├── src/
-│   ├── index.ts          # Main agent configuration
-│   ├── tools/            # Custom tools
-│   │   ├── index.ts      # Tool exports
-│   │   └── weather.ts    # Weather tool example
-│   └── workflows/        # Workflow definitions
-│       └── index.ts      # Expense approval workflow
-├── dist/                 # Compiled output (after build)
-├── .env                  # Environment variables
-├── .voltagent/           # Agent memory storage
-├── Dockerfile            # Production deployment
-├── package.json
-└── tsconfig.json
+│   ├── index.ts              # メインエージェント設定
+│   ├── config/
+│   │   └── index.ts          # API設定
+│   ├── tools/                # カスタムツール
+│   │   ├── crypto.ts         # CoinGecko API連携
+│   │   ├── news.ts           # News API連携
+│   │   ├── crypto-analysis.ts # 総合分析ツール
+│   │   └── index.ts          # ツールエクスポート
+│   ├── types/
+│   │   └── index.ts          # 型定義
+│   └── workflows/            # ワークフロー定義
+│       ├── crypto-analysis-workflow.ts
+│       └── index.ts
+├── .voltagent/               # エージェントメモリ
+│   └── memory.db
+└── package.json
 ```
 
-## 🧪 Testing Workflows
+## 🧪 機能確認
 
-The included expense approval workflow has test scenarios:
-
-### Scenario 1: Auto-approved (< $500)
-```json
-{
-  "employeeId": "EMP-123",
-  "amount": 250,
-  "category": "office-supplies",
-  "description": "New laptop mouse and keyboard"
-}
-```
-
-### Scenario 2: Manager approval required ($500-$5000)
-```json
-{
-  "employeeId": "EMP-456",
-  "amount": 3500,
-  "category": "travel",
-  "description": "Conference registration and hotel"
-}
-```
-
-### Scenario 3: Director approval required (> $5000)
-```json
-{
-  "employeeId": "EMP-789",
-  "amount": 15000,
-  "category": "equipment",
-  "description": "New server hardware"
-}
-```
-
-## 🐳 Docker Deployment
-
-Build and run with Docker:
+### 市場データ分析
 
 ```bash
-# Build image
-docker build -t sample-agent .
-
-# Run container
-docker run -p 3141:3141 --env-file .env sample-agent
-
-# Or use docker-compose
-docker-compose up
+{"message": "イーサリアムの技術分析と今後の見通しを分析して"}
 ```
 
-## 🛠️ Development
+### ニュース・センチメント分析
 
-### Available Scripts
-
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm start` - Run production build
-- `npm run volt` - VoltAgent CLI tools
-
-### Adding Custom Tools
-
-Create new tools in `src/tools/`:
-
-```typescript
-import { createTool } from '@voltagent/core';
-import { z } from 'zod';
-
-export const myTool = createTool({
-  name: 'myTool',
-  description: 'Description of what this tool does',
-  input: z.object({
-    param: z.string(),
-  }),
-  output: z.string(),
-  handler: async ({ param }) => {
-    // Tool logic here
-    return `Result: ${param}`;
-  },
-});
+```bash
+{"message": "ビットコインの最新ニュースを15件取得してセンチメントを分析して"}
 ```
 
-### Creating New Workflows
+## 📚 参考資料
 
-Add workflows in `src/workflows/`:
+- **VoltAgent公式**: [voltagent.dev](https://voltagent.dev)
+- **ドキュメント**: [voltagent.dev/docs](https://voltagent.dev/docs)
+- **サンプル**: [github.com/VoltAgent/examples](https://github.com/VoltAgent/examples)
 
-```typescript
-import { createWorkflowChain } from '@voltagent/core';
-import { z } from 'zod';
+### API ドキュメント
 
-export const myWorkflow = createWorkflowChain({
-  id: "my-workflow",
-  name: "My Custom Workflow",
-  purpose: "Description of what this workflow does",
-  input: z.object({
-    data: z.string(),
-  }),
-  result: z.object({
-    output: z.string(),
-  }),
-})
-  .andThen({
-    id: "process-data",
-    execute: async ({ data }) => {
-      // Process the input
-      const processed = data.toUpperCase();
-      return { processed };
-    },
-  })
-  .andThen({
-    id: "final-step",
-    execute: async ({ data }) => {
-      // Final transformation
-      return { output: `Result: ${data.processed}` };
-    },
-  });
-```
+- **CoinGecko API**: [coingecko.com/api/docs/v3](https://docs.coingecko.com/api/docs/v3)
+- **News API**: [newsapi.org/docs](https://newsapi.org/docs)
+- **Google AI**: [ai.google.dev](https://ai.google.dev)
 
-## 📚 Resources
+## 📄 ライセンス
 
-- **Documentation**: [voltagent.dev/docs](https://voltagent.dev/docs/)
-- **Examples**: [github.com/VoltAgent/voltagent/tree/main/examples](https://github.com/VoltAgent/voltagent/tree/main/examples)
-- **Discord**: [Join our community](https://s.voltagent.dev/discord)
-- **Blog**: [voltagent.dev/](https://voltagent.dev/blog/)
+MIT License
 
-## 🤝 Contributing
+## ⚠️ 免責事項
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
----
-
-<div align="center">
-  <p>Built with ❤️ using <a href="https://voltagent.dev">VoltAgent</a></p>
-</div>
+このアプリケーションは**教育・デモンストレーション目的**のみで提供されています。本アプリケーションの使用により生じたいかなる損失についても、開発者は責任を負いません
