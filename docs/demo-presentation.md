@@ -15,7 +15,6 @@ style: |
     }
     h1 {
       color: #00ff88;
-      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
       border-bottom: 2px solid #00ff88;
       padding-bottom: 6px;
       font-size: 2.2em;
@@ -23,7 +22,6 @@ style: |
     }
     h2 {
       color: #ffd700;
-      text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
       font-size: 1.6em;
       margin-bottom: 0.6em;
     }
@@ -657,5 +655,5 @@ new VoltAgent({
 ### 💻 **Try It Now**
 ```bash
 git clone https://github.com/your-repo/sample-agent
-cd sample-agent && npm install && npm run dev
+cd sample-agent && npm ci && npm run dev
 ```
