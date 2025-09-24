@@ -67,13 +67,13 @@ export const cryptoAnalysisTool = createTool({
 		newsCount: z
 			.number()
 			.optional()
-			.default(10)
+			.default(15)
 			.describe("収集するニュース記事数（デフォルト: 10、最大: 20）"),
 	}),
 	execute: async ({
 		cryptoId,
 		includeDetailedAnalysis = false,
-		newsCount = 10,
+		newsCount = 15,
 	}) => {
 		// パラメータの型チェックと制限
 		const validatedCryptoId = cryptoId as string;
@@ -87,12 +87,6 @@ export const cryptoAnalysisTool = createTool({
 				cryptoId: validatedCryptoId,
 				vs_currencies: ["usd", "jpy"],
 			})) as CryptoDataResponse;
-
-			if (marketDataResult.error) {
-				const errorMessage = `${validatedCryptoId}の市場データ取得に失敗しました: ${marketDataResult.message}`;
-				console.error(`❌ 市場データ取得エラー: ${errorMessage}`);
-				throw new Error(errorMessage);
-			}
 
 			const marketData = marketDataResult.data;
 			if (!marketData) {
@@ -111,7 +105,7 @@ export const cryptoAnalysisTool = createTool({
 			})) as NewsSearchResponse;
 
 			// ニュース取得でエラーが発生した場合は処理を停止
-			if (newsResult.error) {
+			if (!newsResult.data) {
 				const errorMessage = `${validatedCryptoId}のニュース収集に失敗しました: ${newsResult.message}`;
 				console.error(`❌ ニュース収集エラー: ${errorMessage}`);
 				throw new Error(errorMessage);
@@ -202,7 +196,7 @@ export const cryptoAnalysisTool = createTool({
 		} catch (error) {
 			const errorMessage = `${validatedCryptoId}の総合分析に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`;
 			console.error(`❌ 分析処理エラー: ${errorMessage}`);
-			throw error; // エラーを再スローして処理を完全に停止
+			throw error;
 		}
 	},
 });

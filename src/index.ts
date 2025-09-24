@@ -9,7 +9,7 @@ import {
 	cryptoDataTool,
 	cryptoNewsSearchTool,
 } from "./tools";
-import { cryptoAnalysisWorkflow } from "./workflows";
+// import { cryptoAnalysisWorkflow } from "./workflows";
 
 // Create a logger instance
 const logger = createPinoLogger({
@@ -62,7 +62,7 @@ new VoltAgent({
 		cryptoNewsAnalyst,
 	},
 	workflows: {
-		cryptoAnalysisWorkflow,
+		// cryptoAnalysisWorkflow,
 	},
 	server: honoServer(),
 	logger,
