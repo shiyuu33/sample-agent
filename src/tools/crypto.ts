@@ -2,24 +2,10 @@ import { createTool } from "@voltagent/core";
 import axios from "axios";
 import { z } from "zod";
 import { config } from "../config";
-
-// 暗号通貨データの型定義
-interface CryptoData {
-	id: string;
-	symbol: string;
-	name: string;
-	current_price_usd: number;
-	current_price_jpy: number;
-	market_cap_usd: number;
-	market_cap_jpy: number;
-	total_volume_usd: number;
-	total_volume_jpy: number;
-	price_change_24h: number;
-	price_change_percentage_24h: number;
-	market_cap_change_24h: number;
-	market_cap_change_percentage_24h: number;
-	last_updated: string;
-}
+import type {
+	CoinGeckoApiResponse,
+	CryptoData,
+} from "../types";
 
 /**
  * 暗号通貨市場データ取得ツール
@@ -58,48 +44,16 @@ export const cryptoDataTool = createTool({
 						developer_data: false,
 						sparkline: false,
 					},
-					headers: config.apis.coinGecko.headers,
 					timeout: config.apis.coinGecko.timeout,
 				},
 			);
 
 			if (!response.data || !response.data.market_data) {
-				return {
-					cryptoId: cryptoId,
-					error: "市場データが見つかりません",
-					message: `暗号通貨「${cryptoId}」の市場データを取得できませんでした。正しいIDを確認してください。`,
-					suggestedIds: [
-						"bitcoin",
-						"ethereum",
-						"cardano",
-						"solana",
-						"dogecoin",
-						"chainlink",
-						"polkadot",
-					],
-				};
+				throw new Error("市場データが見つかりません");
 			}
 
 			// データの整形
-			const marketData = response.data.market_data;
-			const cryptoData: CryptoData = {
-				id: response.data.id,
-				symbol: response.data.symbol?.toUpperCase() || "N/A",
-				name: response.data.name || "N/A",
-				current_price_usd: marketData.current_price?.usd || 0,
-				current_price_jpy: marketData.current_price?.jpy || 0,
-				market_cap_usd: marketData.market_cap?.usd || 0,
-				market_cap_jpy: marketData.market_cap?.jpy || 0,
-				total_volume_usd: marketData.total_volume?.usd || 0,
-				total_volume_jpy: marketData.total_volume?.jpy || 0,
-				price_change_24h: marketData.price_change_24h || 0,
-				price_change_percentage_24h:
-					marketData.price_change_percentage_24h || 0,
-				market_cap_change_24h: marketData.market_cap_change_24h || 0,
-				market_cap_change_percentage_24h:
-					marketData.market_cap_change_percentage_24h || 0,
-				last_updated: marketData.last_updated || new Date().toISOString(),
-			};
+			const cryptoData = makeCoinGeckoResponse(response.data, vs_currencies);
 
 			// 取引量分析
 			const volumeAnalysis = analyzeVolume(cryptoData.total_volume_usd);
@@ -113,14 +67,14 @@ export const cryptoDataTool = createTool({
 			const marketCapAnalysis = analyzeMarketCap(cryptoData.market_cap_usd);
 
 			const message = generateCryptoSummary(
-				response.data,
+				cryptoData,
 				volumeAnalysis,
 				volatilityAnalysis,
 				marketCapAnalysis,
 			);
 
 			return {
-				cryptoId: response.data.id,
+				cryptoId: cryptoData.id,
 				data: cryptoData,
 				analysis: {
 					volume: volumeAnalysis,
@@ -133,11 +87,39 @@ export const cryptoDataTool = createTool({
 		} catch (error) {
 			console.error(`❌ ${cryptoId}の市場データ取得中にエラー:`, error);
 			throw new Error("CoinGecko API");
+		} finally {
+			console.log(`🔍 ${cryptoId}の市場データ取得完了`);
 		}
 	},
 });
 
 // ヘルパー関数
+
+// CoinGecko APIレスポンスをCryptoDataに変換する関数
+function makeCoinGeckoResponse(
+	response: CoinGeckoApiResponse,
+	currencies: string[],
+): CryptoData {
+	const marketData = response.market_data;
+
+	return {
+		id: response.id,
+		symbol: response.symbol,
+		name: response.name,
+		current_price_usd: marketData.current_price.usd || 0,
+		current_price_jpy: marketData.current_price.jpy || 0,
+		market_cap_usd: marketData.market_cap.usd || 0,
+		market_cap_jpy: marketData.market_cap.jpy || 0,
+		total_volume_usd: marketData.total_volume.usd || 0,
+		total_volume_jpy: marketData.total_volume.jpy || 0,
+		price_change_24h: marketData.price_change_24h || 0,
+		price_change_percentage_24h: marketData.price_change_percentage_24h || 0,
+		market_cap_change_24h: marketData.market_cap_change_24h || 0,
+		market_cap_change_percentage_24h:
+			marketData.market_cap_change_percentage_24h || 0,
+		last_updated: marketData.last_updated || response.last_updated,
+	};
+}
 
 function analyzeVolume(volumeUsd: number): string {
 	if (volumeUsd > 10000000000) return "非常に高い"; // 100億USD以上
