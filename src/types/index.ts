@@ -18,7 +18,7 @@ export interface ApiError {
 	httpStatus?: number;
 }
 
-// 暗号通貨データ型
+// 暗号通貨データ型（CoinGecko API レスポンス構造に対応）
 export interface CryptoData {
 	id: string;
 	symbol: string;
@@ -33,6 +33,24 @@ export interface CryptoData {
 	price_change_percentage_24h: number;
 	market_cap_change_24h: number;
 	market_cap_change_percentage_24h: number;
+	last_updated: string;
+}
+
+// CoinGecko API の実際のレスポンス型
+export interface CoinGeckoApiResponse {
+	id: string;
+	symbol: string;
+	name: string;
+	market_data: {
+		current_price: Record<string, number>;
+		market_cap: Record<string, number>;
+		total_volume: Record<string, number>;
+		price_change_24h: number;
+		price_change_percentage_24h: number;
+		market_cap_change_24h: number;
+		market_cap_change_percentage_24h: number;
+		last_updated: string;
+	};
 	last_updated: string;
 }
 
@@ -121,6 +139,7 @@ export interface AppConfig {
 			retries: number;
 			headers: {
 				Accept: string;
+				"x-cg-demo-api-key": string;
 			};
 		};
 		newsApi: {

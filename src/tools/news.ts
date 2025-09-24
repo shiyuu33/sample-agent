@@ -4,20 +4,25 @@ import { z } from "zod";
 import { config } from "../config";
 import type { NewsArticle, NewsSearchResponse } from "../types";
 
+// News API の実際のレスポンス型（提供された仕様に基づく）
 interface NewsApiResponse {
 	status: string;
 	totalResults: number;
-	articles: {
-		title: string;
-		description: string;
-		url: string;
-		publishedAt: string;
-		source: {
-			name: string;
-		};
-		urlToImage?: string;
-		content?: string;
-	}[];
+	articles: NewsApiArticle[];
+}
+
+interface NewsApiArticle {
+	source: {
+		id: string | null;
+		name: string;
+	};
+	author: string | null;
+	title: string;
+	description: string;
+	url: string;
+	urlToImage: string | null;
+	publishedAt: string;
+	content: string | null;
 }
 
 /**
@@ -73,21 +78,17 @@ export const cryptoNewsSearchTool = createTool({
 					timeout: config.apis.newsApi.timeout,
 				},
 			);
+			console.log(response.data);
 
-			if (response.data.status !== "ok") {
-				throw new Error(`News API エラー: ${response.data.status}`);
+			if (!response.data) {
+				throw new Error("News API エラー");
 			}
 
 			// 記事を処理し、暗号通貨関連度でフィルタリング
-			const processedArticles = response.data.articles
-				.filter((article) => article.title && article.description)
+			const rawArticles = makeNewsResponse(response.data);
+			const processedArticles = rawArticles
 				.map((article) => ({
-					title: article.title,
-					description: article.description,
-					url: article.url,
-					publishedAt: article.publishedAt,
-					source: article.source.name,
-					urlToImage: article.urlToImage,
+					...article,
 					relevanceScore: calculateCryptoRelevance(
 						`${article.title} ${article.description}`,
 						query,
@@ -97,7 +98,7 @@ export const cryptoNewsSearchTool = createTool({
 				.slice(0, pageSize);
 
 			// センチメント分析
-			const sentiment = analyzeCryptoNewsSentiment(processedArticles);
+			const sentiment = analyzeCryptoNewsSentiment(rawArticles);
 
 			const result: NewsSearchResponse = {
 				success: true,
@@ -120,12 +121,31 @@ export const cryptoNewsSearchTool = createTool({
 
 			return result;
 		} catch (error) {
+			console.error(`❌ ${query}に関する暗号通貨ニュースを検索中にエラー:`, error);
 			throw new Error("News API");
+		} finally {
+			console.log(`📰 ${query}に関する暗号通貨ニュースを検索完了`);
 		}
 	},
 });
 
 // ヘルパー関数
+
+// News APIレスポンスをNewsArticleに変換する関数
+function makeNewsResponse(apiResponse: NewsApiResponse): NewsArticle[] {
+	return apiResponse.articles
+		.filter((article) => article.title && article.description)
+		.map((article) => ({
+			title: article.title,
+			description: article.description,
+			url: article.url,
+			publishedAt: article.publishedAt,
+			source: article.source.name,
+			urlToImage: article.urlToImage || undefined,
+			content: article.content || undefined,
+		}));
+}	
+
 function calculateCryptoRelevance(text: string, query: string): number {
 	const lowerText = text.toLowerCase();
 	const lowerQuery = query.toLowerCase();

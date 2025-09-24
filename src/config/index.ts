@@ -8,6 +8,7 @@ export const config: AppConfig = {
 			timeout: 10000,
 			retries: 3,
 			headers: {
+				"x-cg-demo-api-key": `${process.env.COIN_GECKO_DEMO_API_KEY}`,
 				Accept: "application/json",
 			},
 		},
