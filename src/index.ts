@@ -5,7 +5,6 @@ import { LibSQLMemoryAdapter } from "@voltagent/libsql";
 import { createPinoLogger } from "@voltagent/logger";
 import { honoServer } from "@voltagent/server-hono";
 import {
-	cryptoAnalysisTool,
 	cryptoDataTool,
 	cryptoNewsSearchTool,
 } from "./tools";
@@ -56,9 +55,8 @@ const cryptoNewsAnalyst = new Agent({
 const cryptoAgent = new Agent({
 	name: "crypto-analysis-agent",
 	instructions:
-		"暗号通貨の市場データ分析、ニュース収集、包括的レポート生成を行う専門AIエージェントです。CoinGecko APIとNews APIを使用してリアルタイムな暗号通貨分析を提供し、投資判断の参考情報を日本語で提供します。",
+		"あなたの役割は、他のエージェントを監督し、全体のプロセスを管理することです。サブエージェントの結果をまとめ、投資判断の参考情報を日本語で提供します。",
 	model: google("gemini-2.0-flash-exp"),
-	tools: [cryptoAnalysisTool],
 	subAgents: [cryptoDataAnalyst, cryptoNewsAnalyst],
 	memory,
 });
