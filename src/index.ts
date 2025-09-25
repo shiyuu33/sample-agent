@@ -31,15 +31,6 @@ const memory = new Memory({
 	}),
 });
 
-// メイン暗号通貨分析エージェント
-const cryptoAgent = new Agent({
-	name: "crypto-analysis-agent",
-	instructions:
-		"暗号通貨の市場データ分析、ニュース収集、包括的レポート生成を行う専門AIエージェントです。CoinGecko APIとNews APIを使用してリアルタイムな暗号通貨分析を提供し、投資判断の参考情報を日本語で提供します。",
-	model: google("gemini-2.0-flash-exp"),
-	tools: [cryptoDataTool, cryptoNewsSearchTool, cryptoAnalysisTool],
-	memory,
-});
 
 // 暗号通貨市場データ専門サブエージェント
 const cryptoDataAnalyst = new Agent({
@@ -61,6 +52,17 @@ const cryptoNewsAnalyst = new Agent({
 	memory,
 });
 
+// メイン暗号通貨分析エージェント
+const cryptoAgent = new Agent({
+	name: "crypto-analysis-agent",
+	instructions:
+		"暗号通貨の市場データ分析、ニュース収集、包括的レポート生成を行う専門AIエージェントです。CoinGecko APIとNews APIを使用してリアルタイムな暗号通貨分析を提供し、投資判断の参考情報を日本語で提供します。",
+	model: google("gemini-2.0-flash-exp"),
+	tools: [cryptoAnalysisTool],
+	subAgents: [cryptoDataAnalyst, cryptoNewsAnalyst],
+	memory,
+});
+
 /**
  * VoltAgentシステムの初期化
  * 複数のエージェント、ワークフロー、サーバー、ロガーを統合
@@ -68,8 +70,6 @@ const cryptoNewsAnalyst = new Agent({
 new VoltAgent({
 	agents: {
 		cryptoAgent,
-		cryptoDataAnalyst,
-		cryptoNewsAnalyst,
 	},
 	workflows: {
 		// cryptoAnalysisWorkflow,
