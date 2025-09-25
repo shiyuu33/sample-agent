@@ -10,7 +10,7 @@ style: |
       font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #ffffff;
-      font-size: 22px;
+      font-size: 20px;
       padding: 30px;
     }
     h1 {
@@ -58,7 +58,7 @@ style: |
       margin: 8px 0;
       font-family: 'Fira Code', monospace;
       color: #a0aec0;
-      font-size: 0.8em;
+      font-size: 0.75em;
     }
     .tech-grid {
       display: grid;
@@ -89,7 +89,7 @@ style: |
       border-radius: 6px;
       padding: 12px;
       overflow-x: auto;
-      font-size: 0.75em;
+      font-size: 0.7em;
       margin: 0.5em 0;
     }
     code {
@@ -139,8 +139,7 @@ style: |
 6. **🎯 統一API**
 7. **📊 可観測性（VoltOps）**
 8. **🧠 メモリ管理**
-9. **💻 実装デモ（1）**
-10. **💻 実装デモ（2）**
+9. **💻 実装デモ**
 
 </div>
 
@@ -347,29 +346,26 @@ https://voltagent.dev/
 <div class="code-box">
 
 ```typescript
-// src/index.ts - 実際のプロジェクトコード
-// メイン暗号通貨分析エージェント（司令塔）
-const cryptoAgent = new Agent({
-  name: "crypto-analysis-agent",
-  instructions: "暗号通貨の市場データ分析、ニュース収集、包括的レポート生成",
-  model: google("gemini-2.0-flash-exp"),
-  tools: [cryptoDataTool, cryptoNewsSearchTool, cryptoAnalysisTool],
-  memory,
-});
-
-// 市場データ専門サブエージェント
+// src/index.ts
 const cryptoDataAnalyst = new Agent({
   name: "crypto-data-analyst",
-  instructions: "CoinGecko APIで価格、時価総額、取引量などを収集・分析",
-  tools: [cryptoDataTool],  // 専門化：市場データのみ
+  model: google("gemini-2.0-flash-exp"),
+  tools: [cryptoDataTool],
   memory,
 });
 
-// ニュース分析専門サブエージェント  
 const cryptoNewsAnalyst = new Agent({
   name: "crypto-news-analyst",
-  instructions: "News APIでニュース収集、センチメント分析、影響評価",
-  tools: [cryptoNewsSearchTool],  // 専門化：ニュースのみ
+  model: google("gemini-2.0-flash-exp"),
+  tools: [cryptoNewsSearchTool],
+  memory,
+});
+
+const cryptoAgent = new Agent({
+  name: "crypto-analysis-agent",
+  instructions: "あなたの役割は、他のエージェントを監督し、全体のプロセスを管理することです。サブエージェントの結果をまとめ、投資判断の参考情報を日本語で提供します。",
+  model: google("gemini-2.0-flash-exp"),
+  subAgents: [cryptoDataAnalyst, cryptoNewsAnalyst],
   memory,
 });
 ```
@@ -434,10 +430,11 @@ Gemini、GPT-4、Claude等、異なるLLMプロバイダを統一APIで簡単切
 // src/index.ts - 実際のプロジェクトコード
 import { google } from "@ai-sdk/google";
 
-const cryptoAgent = new Agent({
-  name: "crypto-analysis-agent",
-  model: google("gemini-2.0-flash-exp"),  // Gemini 2.0
-  tools: [cryptoDataTool, cryptoNewsSearchTool, cryptoAnalysisTool],
+const cryptoNewsAnalyst = new Agent({
+  name: "crypto-news-analyst",
+  model: google("gemini-2.0-flash-exp"),
+  tools: [cryptoNewsSearchTool],
+  memory,
 });
 
 // 他のプロバイダへの切り替えも簡単
@@ -573,7 +570,7 @@ const cryptoAgent = new Agent({
 
 ---
 
-## 9. 💻 実装デモ（1）
+## 9. 💻 実装デモ
 
 ### 🎬 実演デモシナリオ
 
@@ -621,40 +618,6 @@ const cryptoAgent = new Agent({
 
 </div>
 </div>
-
----
-
-## 10. 💻 実装デモ（2）
-
-```typescript
-// メイン統合エージェント（司令塔役）
-const cryptoAgent = new Agent({
-  name: "crypto-analysis-agent",
-  instructions: "暗号通貨の包括的分析レポートを生成...",
-  tools: [cryptoDataTool, cryptoNewsSearchTool, cryptoAnalysisTool]
-});
-
-// データ分析専門サブエージェント
-const cryptoDataAnalyst = new Agent({
-  name: "crypto-data-analyst", 
-  instructions: "CoinGecko APIで市場データ収集・分析...",
-  tools: [cryptoDataTool]  // 価格・時価総額・取引量
-});
-
-// ニュース分析専門サブエージェント  
-const cryptoNewsAnalyst = new Agent({
-  name: "crypto-news-analyst",
-  instructions: "News APIでニュース収集・センチメント分析...", 
-  tools: [cryptoNewsSearchTool]  // ニュース・センチメント
-});
-
-new VoltAgent({
-  agents: { cryptoAgent, cryptoDataAnalyst, cryptoNewsAnalyst },
-  // workflows: { cryptoAnalysisWorkflow }
-});
-```
-
-
 
 ---
 ## 🤝 ご清聴ありがとうございました！
