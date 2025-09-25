@@ -86,7 +86,6 @@ export const cryptoNewsSearchTool = createTool({
 					timeout: config.apis.newsApi.timeout,
 				},
 			);
-			console.log(response.data);
 
 			if (!response.data) {
 				throw new Error("News API エラー");
