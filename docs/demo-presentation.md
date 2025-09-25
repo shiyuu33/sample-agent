@@ -127,20 +127,20 @@ style: |
 
 ---
 
-## 📋 Agenda
+## 📋 アジェンダ
 
 <div class="compact-list">
 
-1. **🧠 AIエージェント基礎** - 定義・構成要素・タイプ別解説
-2. 🎭 AIエージェントの2つのタイプ
-3. **🤔 VoltAgentとは?** - プロジェクト概要と特徴
-4. **👥 マルチエージェント** - 専門化と連携の仕組み
-5. **🔗 ツール連携** - 外部システム・SaaS統合
-6. **🎯 統一API** - 複数LLMプロバイダ対応
-7. **📊 可観測性** - VoltOpsによる監視・デバッグ
-8. **🧠 メモリ管理** - 会話履歴と永続化
-9. **💻 実装デモ（1）** - 実演シナリオ
-10. **💻 実装デモ（2）** - マルチエージェント実装
+1. **🧠 AIエージェント基礎**
+2. **🎭 AIエージェントの2つのタイプ**
+3. **🤔 VoltAgentとは?** 
+4. **👥 マルチエージェント**
+5. **🔗 ツール連携** 
+6. **🎯 統一API**
+7. **📊 可観測性（VoltOps）**
+8. **🧠 メモリ管理**
+9. **💻 実装デモ（1）**
+10. **💻 実装デモ（2）**
 
 </div>
 
@@ -205,6 +205,9 @@ style: |
 </div>
 </div>
 
+- https://google.github.io/adk-docs/agents/
+- https://www.kaggle.com/whitepaper-agents
+
 ---
 
 ## 2. 🎭 AIエージェントの2つのタイプ
@@ -235,6 +238,8 @@ style: |
 - **自律性のレベル**: 制御 vs 柔軟性
 - **コスト**: 処理時間・API呼び出し回数
 
+https://google.github.io/adk-docs/agents/
+
 ---
 
 ## 3. 🤔 VoltAgentとは?
@@ -243,7 +248,7 @@ style: |
 
 <h3 class="highlight">
 
-TypeScriptで構築されたエンタープライズ向けAIエージェントフレームワーク
+TypeScriptで構築されたAIエージェントフレームワーク
 
 </h3>
 
@@ -323,19 +328,19 @@ TypeScriptで構築されたエンタープライズ向けAIエージェント�
 </div>
 </div>
 
+https://voltagent.dev/
+
 ---
 
 ## 4. 👥 マルチエージェントアーキテクチャ
 
-### 🎯 **複数エージェントによる専門化と連携**
+### 🎯 **複数エージェントによる連携**
 
 <h3 class="highlight">
 
 複数の専門エージェントが連携して、複雑なタスクを効率的に処理
 
 </h3>
-
-### 🏗️ **実際のマルチエージェント構成**
 
 <div class="code-box">
 
@@ -368,6 +373,8 @@ const cryptoNewsAnalyst = new Agent({
 ```
 
 </div>
+
+https://blog.langchain.com/langgraph-multi-agent-workflows/
 
 ---
 
@@ -486,9 +493,11 @@ const cryptoAgent = new Agent({
 
 <div style="text-align:center">
   
-  ![w:850](./images/voltops.png)
+  ![w:750](./images/voltops.png)
 
 </div>
+
+https://voltagent.dev/voltops-llm-observability/
 
 ---
 
@@ -568,7 +577,7 @@ const cryptoAgent = new Agent({
 
 ```bash
 # エージェントに質問
-"ビットコインの現在の市場状況と最新ニュースを分析して"
+"イーサリアムについて市場データ分析とニュース分析を含む包括的なレポートを作成してください"
 ```
 
 <div class="tech-grid">
@@ -646,14 +655,8 @@ new VoltAgent({
 
 
 ---
-## 🤝 Let's Build Together!
+## 🤝 ご清聴ありがとうございました！
 
 ### 📚 **Resources**
 - **GitHub**: https://github.com/VoltAgent/voltagent
 - **Docs**: https://voltagent.dev/docs
-
-### 💻 **Try It Now**
-```bash
-git clone https://github.com/your-repo/sample-agent
-cd sample-agent && npm ci && npm run dev
-```
